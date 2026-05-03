@@ -15,6 +15,13 @@ The project is a small Expo React Native app that can be developed quickly, but 
 | Web | `react-native-web` is installed and `npm run web` is configured. |
 | Install | `npm install` completed successfully. |
 
+Additional validation:
+
+- `npx expo export --platform web` completed successfully.
+- Expo start was validated on a local Metro port and returned HTTP `200`.
+- Expo web preview was opened in Playwright; Home, Inventory, Schedule, Reports, and Team rendered without console errors or warnings.
+- A `390x844` mobile viewport was checked for the Home screen.
+
 ## Architecture
 
 | Area | Current state | Risk |

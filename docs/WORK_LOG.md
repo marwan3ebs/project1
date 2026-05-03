@@ -53,3 +53,12 @@ This file records audit and organization steps so future work can reuse context 
 - Created and pushed `AbouSeada` from `dev`.
 - Created and pushed `AhmedHassan` from `dev`.
 - Created and pushed `Maro` from `dev`.
+
+### Step 8 - Browser runtime validation
+- Started Expo web preview on `http://localhost:8099`.
+- Opened the app in Playwright.
+- Confirmed the page title is `Top Agents Collaboration`.
+- Confirmed Home, Inventory, Schedule, Reports, and Team tabs render and switch without runtime console errors.
+- Checked a narrow mobile viewport at `390x844`.
+- Observed no console errors or warnings during tab navigation.
+- Stopped the Expo web preview process and removed temporary validation logs.
