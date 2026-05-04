@@ -21,8 +21,12 @@ function property(input) {
   return {
     id: input.id,
     agentId: input.agentId,
+    ownerAgentId: input.ownerAgentId || input.agentId,
     agentName: input.agentName,
     teamId: input.teamId,
+    createdBy: input.createdBy || input.agentId,
+    updatedBy: input.updatedBy || input.agentId,
+    clientId: input.clientId || `client-${input.id}`,
     customerName: input.customerName,
     customerPhone: input.customerPhone,
     customerType: input.customerType,
@@ -60,7 +64,9 @@ export function createSeedData() {
       agentIds: ['agent-sara', 'agent-omar'],
       managerId: 'agent-manager',
       target: 18,
+      status: 'active',
       createdAt: daysFromToday(-120),
+      updatedAt: daysFromToday(-1),
     },
     {
       id: 'team-west',
@@ -70,7 +76,9 @@ export function createSeedData() {
       agentIds: ['agent-mariam', 'agent-youssef'],
       managerId: 'agent-manager',
       target: 17,
+      status: 'active',
       createdAt: daysFromToday(-120),
+      updatedAt: daysFromToday(-1),
     },
   ];
 
@@ -87,7 +95,10 @@ export function createSeedData() {
       leaderId: null,
       permissions: [],
       isActive: true,
+      status: 'active',
       target: 10,
+      createdAt: daysFromToday(-118),
+      updatedAt: daysFromToday(-1),
     },
     {
       id: 'agent-sara',
@@ -101,7 +112,10 @@ export function createSeedData() {
       leaderId: 'agent-hana',
       permissions: [],
       isActive: true,
+      status: 'active',
       target: 8,
+      createdAt: daysFromToday(-112),
+      updatedAt: daysFromToday(-1),
     },
     {
       id: 'agent-omar',
@@ -115,7 +129,10 @@ export function createSeedData() {
       leaderId: 'agent-hana',
       permissions: [],
       isActive: true,
+      status: 'active',
       target: 7,
+      createdAt: daysFromToday(-111),
+      updatedAt: daysFromToday(-1),
     },
     {
       id: 'agent-karim',
@@ -129,7 +146,10 @@ export function createSeedData() {
       leaderId: null,
       permissions: [],
       isActive: true,
+      status: 'active',
       target: 10,
+      createdAt: daysFromToday(-118),
+      updatedAt: daysFromToday(-1),
     },
     {
       id: 'agent-mariam',
@@ -143,7 +163,10 @@ export function createSeedData() {
       leaderId: 'agent-karim',
       permissions: [],
       isActive: true,
+      status: 'active',
       target: 6,
+      createdAt: daysFromToday(-108),
+      updatedAt: daysFromToday(-1),
     },
     {
       id: 'agent-youssef',
@@ -157,7 +180,10 @@ export function createSeedData() {
       leaderId: 'agent-karim',
       permissions: [],
       isActive: true,
+      status: 'active',
       target: 7,
+      createdAt: daysFromToday(-107),
+      updatedAt: daysFromToday(-1),
     },
     {
       id: 'agent-manager',
@@ -171,7 +197,10 @@ export function createSeedData() {
       leaderId: null,
       permissions: [],
       isActive: true,
+      status: 'active',
       target: 0,
+      createdAt: daysFromToday(-140),
+      updatedAt: daysFromToday(-1),
     },
   ];
 
@@ -253,7 +282,7 @@ export function createSeedData() {
       agreementCode: 'TA-2026-104',
       marketType: 'primary',
       transactionType: 'purchase',
-      agreementType: 'exclusive',
+      agreementType: 'buyer_purchase',
       source: 'friends',
       agentId: 'agent-youssef',
       agentName: 'Youssef Aly',
@@ -324,6 +353,9 @@ export function createSeedData() {
       title: 'Seller negotiation meeting',
       relatedPropertyId: 'prop-102',
       agentId: 'agent-omar',
+      assignedAgentId: 'agent-omar',
+      teamId: 'team-east',
+      createdBy: 'agent-hana',
       dueDate: daysFromToday(1),
       priority: 'high',
       status: 'open',
@@ -335,6 +367,9 @@ export function createSeedData() {
       title: 'Initial preview and photos',
       relatedPropertyId: 'prop-103',
       agentId: 'agent-mariam',
+      assignedAgentId: 'agent-mariam',
+      teamId: 'team-west',
+      createdBy: 'agent-karim',
       dueDate: daysFromToday(2),
       priority: 'medium',
       status: 'open',
@@ -346,6 +381,9 @@ export function createSeedData() {
       title: 'Check buyer purchase agreement',
       relatedPropertyId: 'prop-104',
       agentId: 'agent-youssef',
+      assignedAgentId: 'agent-youssef',
+      teamId: 'team-west',
+      createdBy: 'agent-karim',
       dueDate: daysFromToday(0),
       priority: 'high',
       status: 'open',
@@ -357,6 +395,9 @@ export function createSeedData() {
       title: 'Renew open agreement',
       relatedPropertyId: 'prop-102',
       agentId: 'agent-omar',
+      assignedAgentId: 'agent-omar',
+      teamId: 'team-east',
+      createdBy: 'agent-hana',
       dueDate: daysFromToday(10),
       priority: 'high',
       status: 'open',
@@ -364,9 +405,66 @@ export function createSeedData() {
     },
   ];
 
-  const deals = properties.map((item) =>
-    buildDealFromProperty(item, item.status === 'closed' ? 'confirmed' : 'potential'),
-  );
+  const clients = properties.map((item) => ({
+    id: item.clientId,
+    name: item.customerName,
+    phone: item.customerPhone,
+    type: item.customerType,
+    ownerAgentId: item.ownerAgentId,
+    agentId: item.agentId,
+    teamId: item.teamId,
+    propertyIds: [item.id],
+    notes: item.notes,
+    status: 'active',
+    createdBy: item.createdBy,
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt,
+  }));
 
-  return { version: 3, users: agentsWithStats, agents: agentsWithStats, teams, properties, tasks, deals };
+  const agreements = properties.map((item) => ({
+    id: `agreement-${item.id}`,
+    propertyId: item.id,
+    agreementCode: item.agreementCode,
+    agreementType: item.agreementType,
+    transactionType: item.transactionType,
+    ownerAgentId: item.ownerAgentId,
+    agentId: item.agentId,
+    teamId: item.teamId,
+    startDate: item.agreementStartDate,
+    endDate: item.agreementEndDate,
+    status: item.status === 'closed' ? 'completed' : 'active',
+    requiresApproval: item.agreementType === 'exclusive' && item.price > 10000000,
+    approvedBy: item.agreementType === 'exclusive' && item.price <= 10000000 ? 'agent-manager' : null,
+    approvedAt: item.agreementType === 'exclusive' && item.price <= 10000000 ? item.createdAt : null,
+    createdBy: item.createdBy,
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt,
+  }));
+
+  const deals = properties.map((item) => ({
+    ...buildDealFromProperty(item, item.status === 'closed' ? 'confirmed' : 'potential'),
+    ownerAgentId: item.ownerAgentId,
+    agentId: item.agentId,
+    teamId: item.teamId,
+    status: item.status === 'closed' ? 'confirmed' : 'potential',
+  }));
+
+  return {
+    version: 4,
+    users: agentsWithStats,
+    agents: agentsWithStats,
+    teams,
+    clients,
+    properties,
+    agreements,
+    tasks,
+    deals,
+    ownershipHistory: [],
+    auditLog: [],
+    companySettings: {
+      commissionBuyerDefault: 2.5,
+      commissionSellerDefault: 2.5,
+      agreementMonths: 3,
+    },
+  };
 }

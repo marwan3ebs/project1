@@ -40,6 +40,9 @@ export function buildDealFromProperty(property, status = property.status === 'cl
   return {
     id: `deal-${property.id}`,
     propertyId: property.id,
+    ownerAgentId: property.ownerAgentId || property.agentId,
+    agentId: property.agentId || property.ownerAgentId,
+    teamId: property.teamId,
     ...commission,
     closedAt: property.closedAt || null,
     status,

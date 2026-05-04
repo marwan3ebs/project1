@@ -2,41 +2,68 @@
 
 Updated: 2026-05-04
 
-## Hierarchy
+## Roles
 
-- Manager sees all teams, agents, properties, tasks, deals, and reports.
-- Team Leader sees assigned team data and can manage team inventory, team tasks, and team reports.
-- Agent sees only personal properties, tasks, deals, commissions, and reports.
-
-## Demo Users
-
-- Manager demo: `agent-manager`
-- Team Leader demo: `agent-hana`
-- Agent demo: `agent-sara`
-
-The role switcher is available in the desktop header and Settings screen.
+- `manager` / `admin`: company-wide access.
+- `team_leader`: only teams listed in `teamIds`.
+- `agent`: only owned records where the agent is `ownerAgentId`, `assignedAgentId`, or `agentId`.
 
 ## Permission Matrix
 
-| Permission | Manager | Team Leader | Agent |
+| Area | Manager/Admin | Team Leader | Agent |
 | --- | --- | --- | --- |
-| View properties | All | Team only | Own only |
-| Create property | Yes | Yes | Yes |
-| Edit property | All | Team only | Own only |
-| Advance deal phase | All | Team only | Own only |
-| Close deal | All | Team only | Own only |
-| View reports | All | Team only | Own only |
-| Manage users/teams | Yes | No | No |
-| Assign/reassign property | Yes | Team only | No |
-| View commissions | All | Team only | Own only |
-| Create/complete tasks | All | Team only | Own only |
-| Manage settings | Yes | No | No |
+| Properties view | All | Team only | Own only |
+| Properties add | Yes | Yes | Yes |
+| Properties edit | All | Team only | Own only |
+| Properties delete | Yes | No | No |
+| Clients view | All | Team only | Own only |
+| Clients add/edit | Yes | Yes | Yes |
+| Agreements view/create | All | Team only | Own only |
+| Agreements approve/override | Yes | No | No |
+| Deal pipeline view/move | All | Team only | Own only |
+| Mark deal closed | Yes | Yes, team only | Yes, own only |
+| Tasks view/create/complete | All | Team only | Own only |
+| Company reports | Yes | No | No |
+| Team reports | Yes | Own team | No |
+| Personal performance | Yes | Yes | Yes |
+| Commissions view | All | Team only | Own only |
+| Record commission received | Yes | Team only | Own only |
+| Manage users/roles | Yes | No | No |
+| Company settings | Yes | No | No |
 
 ## Implementation
 
-- `src/auth/roles.js` defines role names and labels.
-- `src/auth/permissions.js` defines permission constants and role permissions.
-- `src/auth/accessControl.js` implements `can`, property/report visibility, and scoped data filtering.
-- `src/auth/currentUserDemo.js` defines demo users for role switching.
+- `src/auth/roles.js`: role constants, labels, and manager/admin role helper.
+- `src/auth/permissions.js`: exact permission constants and role permission lists.
+- `src/auth/ownership.js`: ownership/team resolution helpers.
+- `src/auth/scopeFilters.js`: scoped filters for properties, clients, agreements, deals, tasks, agents, and teams.
+- `src/auth/accessControl.js`: `can(user, permission, resource, context)` and business-specific helpers.
 
-Screens receive already-filtered data from `MainNavigator`, while actions still update the full local data set after permission checks.
+Required helpers implemented:
+
+- `can`
+- `getUserScope`
+- `filterPropertiesByScope`
+- `filterClientsByScope`
+- `filterAgreementsByScope`
+- `filterDealsByScope`
+- `filterTasksByScope`
+- `filterAgentsByScope`
+- `canViewProperty`
+- `canEditProperty`
+- `canDeleteProperty`
+- `canManageUser`
+- `canTransferAgent`
+- `canReassignProperty`
+- `canViewReport`
+- `canViewCommission`
+
+## Data Visibility
+
+`MainNavigator` calculates `visibleData` with `filterDataByUserAccess(currentUser, data)` and passes scoped data to every screen. Actions still run against the full local data set, but every important action checks RBAC before mutating state and logs denied attempts.
+
+## Known Limitations
+
+- This is still a local Expo/AsyncStorage demo, not a backend-enforced security system.
+- Role switching is intentionally visible for demo validation.
+- Hard security must move to server-side policy when a backend is added.
