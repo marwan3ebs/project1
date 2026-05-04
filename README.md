@@ -9,13 +9,13 @@ React Native / Expo CRM demo for RE/MAX Top Agents. The app manages real estate 
 - Property detail screen with customer/contact details, agreement information, phase timeline, related follow-ups, and commission summary.
 - Add property/agreement form with required-field validation, generated agreement code, 3-month agreement end-date default, commission fields, and AsyncStorage save.
 - Schedule screen for meetings, previews, follow-ups, pricing, contract checks, signing, and agreement expiry tasks.
-- Biweekly report screen with agent performance, commission totals, phase distribution, team totals, and export-ready summary text.
-- Team leader dashboard with inventory, target progress, closed deals, exclusive listings, follow-up load, and commission scorecards.
+- Analytics report screen with scoped role filters, summary cards, charts, ranked lists, risk alerts, recommendations, and export-ready report text.
+- Ownership/team management console with hierarchy, add/edit/deactivate/delete agent, transfer agent, reassign property/task, audit log, and ownership history.
 - Settings/demo screen for reset, seeding, app info, and role demo explanation.
 - Local persistence with AsyncStorage and safe fallback to seed data if stored data is corrupted.
 - Responsive desktop CRM layout with sidebar navigation, max-width content, compact tables, and smaller desktop action buttons.
-- Role switcher for Manager, Team Leader, and Agent demos with scoped data visibility.
-- Advanced local CRM actions including renewal, exclusivity upgrade, task creation, marketing start, buyer preview, duplicate, archive, reopen, and commission received.
+- Real RBAC helper layer for properties, clients, agreements, deals, tasks, reports, commissions, settings, users, transfers, and reassignment.
+- Advanced local CRM actions including renewal, exclusivity upgrade, notes, logged calls, task creation, marketing start, buyer preview, manager approval, duplicate, archive, delete, reopen, and commission received.
 
 ## Tech Stack
 
@@ -62,6 +62,7 @@ npx expo export --platform web
 |-- docs/
 `-- src/
     |-- components/
+    |   `-- charts/
     |-- constants/
     |-- data/
     |-- auth/
@@ -85,8 +86,8 @@ npx expo export --platform web
 | Property Details | Full CRM record with agreement, customer, timeline, tasks, commission. |
 | Add Agreement | Create property/agreement records with validation. |
 | Schedule | Add and manage CRM follow-ups and meetings. |
-| Reports | Generate biweekly manager report data and export-ready text. |
-| Team | Team leader scorecards and performance tracking. |
+| Reports | Scoped analytics, charts, ranked lists, biweekly report text. |
+| Team | Team performance, ownership management, transfers, reassignment, audit history. |
 | Settings | Reset/seed demo data, switch roles, and inspect permission scope. |
 
 ## Demo Workflow
@@ -112,7 +113,7 @@ feature branches -> dev -> main
 Current upgrade branch:
 
 ```text
-feature/responsive-rbac-crm-actions
+feature/maro-rbac-ownership-analytics
 ```
 
 Do not merge this feature branch into `dev` until validation is complete and reviewed.
@@ -122,6 +123,8 @@ Do not merge this feature branch into `dev` until validation is complete and rev
 - `docs/CRM_DATA_MODEL.md`
 - `docs/DEMO_SCRIPT.md`
 - `docs/RBAC_MODEL.md`
+- `docs/TEAM_MANAGEMENT.md`
+- `docs/ANALYTICS_REPORTS.md`
 - `docs/UI_RESPONSIVE_REDESIGN.md`
 - `docs/CRM_ACTIONS.md`
 - `docs/NEXT_BACKEND_PLAN.md`

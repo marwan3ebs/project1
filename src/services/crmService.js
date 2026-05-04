@@ -75,8 +75,12 @@ export function createPropertyFromForm(data, form) {
   const property = {
     id: `prop-${Date.now()}`,
     agentId: form.agentId,
+    ownerAgentId: form.agentId,
     agentName: agent?.name || 'Unassigned',
     teamId: agent?.teamId || '',
+    clientId: `client-prop-${Date.now()}`,
+    createdBy: form.createdBy || form.agentId,
+    updatedBy: form.createdBy || form.agentId,
     customerName: String(form.customerName || '').trim(),
     customerPhone: String(form.customerPhone || '').trim(),
     customerType: form.customerType,
@@ -115,10 +119,46 @@ export function createPropertyFromForm(data, form) {
 export function addProperty(data, form) {
   const property = createPropertyFromForm(data, form);
   const deal = buildDealFromProperty(property, 'potential');
+  const client = {
+    id: property.clientId,
+    name: property.customerName,
+    phone: property.customerPhone,
+    type: property.customerType,
+    ownerAgentId: property.ownerAgentId,
+    agentId: property.agentId,
+    teamId: property.teamId,
+    propertyIds: [property.id],
+    notes: property.notes,
+    status: 'active',
+    createdBy: property.createdBy,
+    createdAt: property.createdAt,
+    updatedAt: property.updatedAt,
+  };
+  const agreement = {
+    id: `agreement-${property.id}`,
+    propertyId: property.id,
+    agreementCode: property.agreementCode,
+    agreementType: property.agreementType,
+    transactionType: property.transactionType,
+    ownerAgentId: property.ownerAgentId,
+    agentId: property.agentId,
+    teamId: property.teamId,
+    startDate: property.agreementStartDate,
+    endDate: property.agreementEndDate,
+    status: 'active',
+    requiresApproval: property.agreementType === 'exclusive' && property.price > 10000000,
+    approvedBy: property.agreementType === 'exclusive' && property.price <= 10000000 ? property.createdBy : null,
+    approvedAt: property.agreementType === 'exclusive' && property.price <= 10000000 ? daysFromToday(0) : null,
+    createdBy: property.createdBy,
+    createdAt: property.createdAt,
+    updatedAt: property.updatedAt,
+  };
 
   return {
     ...data,
     properties: [property, ...data.properties],
+    clients: [client, ...(data.clients || [])],
+    agreements: [agreement, ...(data.agreements || [])],
     deals: [deal, ...(data.deals || [])],
   };
 }
@@ -186,6 +226,11 @@ export function closePropertyDeal(data, propertyId) {
   return {
     ...data,
     properties: closedProperties,
+    agreements: (data.agreements || []).map((agreement) =>
+      agreement.propertyId === propertyId
+        ? { ...agreement, status: 'completed', updatedAt: daysFromToday(0) }
+        : agreement,
+    ),
     deals: closedProperties.map((property) =>
       buildDealFromProperty(property, property.status === 'closed' ? 'confirmed' : 'potential'),
     ),
@@ -271,15 +316,52 @@ export function changePropertyStatus(data, propertyId, status) {
   );
 }
 
+export function deleteProperty(data, propertyId) {
+  const property = data.properties.find((item) => item.id === propertyId);
+  return {
+    ...data,
+    properties: data.properties.filter((item) => item.id !== propertyId),
+    agreements: (data.agreements || []).filter((agreement) => agreement.propertyId !== propertyId),
+    deals: (data.deals || []).filter((deal) => deal.propertyId !== propertyId),
+    tasks: (data.tasks || []).filter((task) => task.relatedPropertyId !== propertyId),
+    clients: (data.clients || []).filter((client) => client.id !== property?.clientId),
+  };
+}
+
+export function approveAgreement(data, agreementId, user) {
+  return {
+    ...data,
+    agreements: (data.agreements || []).map((agreement) =>
+      agreement.id === agreementId
+        ? {
+            ...agreement,
+            requiresApproval: false,
+            approvedBy: user?.id || 'manager',
+            approvedAt: daysFromToday(0),
+            updatedAt: daysFromToday(0),
+          }
+        : agreement,
+    ),
+  };
+}
+
 export function reassignProperty(data, propertyId, agentId) {
   const agent = getAgent(data, agentId);
   return syncDeals(
-    data,
+    {
+      ...data,
+      agreements: (data.agreements || []).map((agreement) =>
+        agreement.propertyId === propertyId && agent
+          ? { ...agreement, agentId: agent.id, ownerAgentId: agent.id, teamId: agent.teamId, updatedAt: daysFromToday(0) }
+          : agreement,
+      ),
+    },
     data.properties.map((property) =>
       property.id === propertyId && agent
         ? {
             ...property,
             agentId: agent.id,
+            ownerAgentId: agent.id,
             agentName: agent.name,
             teamId: agent.teamId,
             updatedAt: daysFromToday(0),
@@ -325,9 +407,10 @@ export function addInternalNote(data, propertyId, note = 'Internal CRM note adde
 }
 
 export function markCommissionReceived(data, propertyId) {
+  const closed = closePropertyDeal(data, propertyId);
   return {
-    ...closePropertyDeal(data, propertyId),
-    deals: (closePropertyDeal(data, propertyId).deals || []).map((deal) =>
+    ...closed,
+    deals: (closed.deals || []).map((deal) =>
       deal.propertyId === propertyId
         ? { ...deal, status: 'confirmed', commissionReceivedAt: daysFromToday(0) }
         : deal,
@@ -354,6 +437,16 @@ export function runPropertyAction(data, propertyId, actionType, payload = {}) {
       return duplicateProperty(data, propertyId);
     case 'marketing_started':
       return addInternalNote(data, propertyId, 'Marketing started and ads status reviewed.');
+    case 'pricing_note':
+      return addInternalNote(data, propertyId, payload.note || 'Pricing note added for seller negotiation.');
+    case 'negotiation_note':
+      return addInternalNote(data, propertyId, payload.note || 'Negotiation note added.');
+    case 'client_note':
+      return addInternalNote(data, propertyId, payload.note || 'Client note added after direct contact.');
+    case 'log_call':
+      return addInternalNote(data, propertyId, payload.note || 'Client call logged in CRM.');
+    case 'mark_expired':
+      return changePropertyStatus(data, propertyId, 'expired');
     case 'buyer_preview':
       return addTask(data, {
         title: 'Buyer preview scheduled',
@@ -404,6 +497,8 @@ export function runPropertyAction(data, propertyId, actionType, payload = {}) {
 }
 
 export function addTask(data, form) {
+  const property = data.properties.find((item) => item.id === form.relatedPropertyId);
+  const agent = getAgent(data, form.agentId || form.assignedAgentId);
   return {
     ...data,
     tasks: [
@@ -412,11 +507,16 @@ export function addTask(data, form) {
         title: String(form.title || '').trim(),
         type: form.type,
         relatedPropertyId: form.relatedPropertyId,
-        agentId: form.agentId,
+        agentId: form.agentId || form.assignedAgentId,
+        assignedAgentId: form.assignedAgentId || form.agentId,
+        teamId: form.teamId || property?.teamId || agent?.teamId || '',
+        createdBy: form.createdBy || form.agentId || form.assignedAgentId || 'system',
         dueDate: form.dueDate || daysFromToday(1),
         priority: form.priority,
         status: 'open',
         notes: String(form.notes || '').trim(),
+        createdAt: daysFromToday(0),
+        updatedAt: daysFromToday(0),
       },
       ...data.tasks,
     ],
@@ -428,6 +528,26 @@ export function toggleTaskStatus(data, taskId) {
     ...data,
     tasks: data.tasks.map((task) =>
       task.id === taskId ? { ...task, status: task.status === 'done' ? 'open' : 'done' } : task,
+    ),
+  };
+}
+
+export function updateTask(data, taskId, patch) {
+  return {
+    ...data,
+    tasks: data.tasks.map((task) =>
+      task.id === taskId
+        ? {
+            ...task,
+            title: patch.title ?? task.title,
+            type: patch.type ?? task.type,
+            priority: patch.priority ?? task.priority,
+            dueDate: patch.dueDate ?? task.dueDate,
+            notes: patch.notes ?? task.notes,
+            status: patch.status ?? task.status,
+            updatedAt: daysFromToday(0),
+          }
+        : task,
     ),
   };
 }

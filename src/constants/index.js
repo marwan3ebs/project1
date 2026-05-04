@@ -41,6 +41,7 @@ export const TRANSACTION_TYPES = [
 ];
 
 export const AGREEMENT_TYPES = [
+  { value: 'buyer_purchase', label: 'Buyer purchase', short: 'Buyer' },
   { value: 'open', label: 'Open', short: 'Open' },
   { value: 'exclusive', label: 'Exclusive', short: 'Exclusive' },
   { value: 'rent', label: 'Rent', short: 'Rent' },

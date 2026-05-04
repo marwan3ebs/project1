@@ -5,6 +5,7 @@ import {
   Card,
   EmptyState,
   FormInput,
+  ActionMenu,
   PrimaryButton,
   SectionHeader,
   SelectInput,
@@ -88,6 +89,7 @@ export function ScheduleScreen({ data, helpers, actions }) {
           agent={helpers.agentById[task.agentId]}
           property={helpers.propertyById[task.relatedPropertyId]}
           onToggle={() => actions.toggleTask(task.id)}
+          onUpdate={(patch) => actions.updateTask(task.id, patch)}
         />
       ))}
 
@@ -99,13 +101,14 @@ export function ScheduleScreen({ data, helpers, actions }) {
           agent={helpers.agentById[task.agentId]}
           property={helpers.propertyById[task.relatedPropertyId]}
           onToggle={() => actions.toggleTask(task.id)}
+          onUpdate={(patch) => actions.updateTask(task.id, patch)}
         />
       ))}
     </View>
   );
 }
 
-function TaskCard({ task, agent, property, onToggle }) {
+function TaskCard({ task, agent, property, onToggle, onUpdate }) {
   const late = task.status !== 'done' && daysUntil(task.dueDate) < 0;
   const today = task.status !== 'done' && daysUntil(task.dueDate) === 0;
   const tone = task.status === 'done' ? 'success' : late ? 'danger' : today ? 'warning' : 'info';
@@ -124,9 +127,12 @@ function TaskCard({ task, agent, property, onToggle }) {
         <Text style={screen.body}>{property.agreementCode} | {property.customerName} | {property.location}</Text>
       ) : null}
       <Text style={screen.body}>{task.notes}</Text>
-      <View style={screen.actionRow}>
-        <PrimaryButton label={task.status === 'done' ? 'Reopen' : 'Mark done'} onPress={onToggle} tone="dark" style={screen.actionFlex} />
-      </View>
+      <ActionMenu actions={[
+        { label: task.status === 'done' ? 'Reopen' : 'Mark done', onPress: onToggle, tone: 'dark' },
+        { label: 'High priority', onPress: () => onUpdate({ priority: 'high' }) },
+        { label: 'Due tomorrow', onPress: () => onUpdate({ dueDate: daysFromToday(1) }) },
+        { label: 'Reopen', onPress: () => onUpdate({ status: 'open' }) },
+      ]} />
     </Card>
   );
 }

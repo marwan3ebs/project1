@@ -1,13 +1,31 @@
 import { PERMISSIONS, ROLE_PERMISSIONS } from './permissions.js';
-import { ROLES } from './roles.js';
+import { ROLES, isManagerRole } from './roles.js';
+import {
+  canManageAcrossTeams,
+  getTeamIds,
+  isActiveUser,
+  isInRoleScope,
+  isOwnResource,
+  isTeamResource,
+} from './ownership.js';
+import {
+  filterAgentsByScope,
+  filterAgreementsByScope,
+  filterClientsByScope,
+  filterDealsByScope,
+  filterPropertiesByScope,
+  filterTasksByScope,
+  filterTeamsByScope,
+  getUserScope,
+} from './scopeFilters.js';
 
-export function can(user, permission, resource) {
-  if (!user?.isActive) {
-    return false;
-  }
+function allowedPermission(user, permission) {
+  const allowed = new Set([...(ROLE_PERMISSIONS[user?.role] || []), ...(user?.permissions || [])]);
+  return allowed.has(permission);
+}
 
-  const allowed = new Set([...(ROLE_PERMISSIONS[user.role] || []), ...(user.permissions || [])]);
-  if (!allowed.has(permission)) {
+export function can(user, permission, resource = null, context = {}) {
+  if (!isActiveUser(user) || !allowedPermission(user, permission)) {
     return false;
   }
 
@@ -15,113 +33,173 @@ export function can(user, permission, resource) {
     return true;
   }
 
-  if (user.role === ROLES.MANAGER) {
+  const teams = context.teams || [];
+  const targetAgent = context.targetAgent;
+
+  if (isManagerRole(user.role)) {
     return true;
   }
 
-  if (permission.includes('_team_') || permission.includes('team_')) {
-    return hasTeamAccess(user, resource);
-  }
+  switch (permission) {
+    case PERMISSIONS.DELETE_PROPERTY:
+    case PERMISSIONS.APPROVE_AGREEMENT:
+    case PERMISSIONS.OVERRIDE_AGREEMENT:
+    case PERMISSIONS.MANAGE_USERS:
+    case PERMISSIONS.MANAGE_TEAMS:
+    case PERMISSIONS.MANAGE_SETTINGS:
+      return false;
 
-  if (permission.includes('_own_') || permission === PERMISSIONS.ADVANCE_DEAL_PHASE) {
-    return ownsResource(user, resource) || hasTeamAccess(user, resource);
-  }
+    case PERMISSIONS.REASSIGN_PROPERTY:
+      return canReassignProperty(user, resource, targetAgent, teams);
 
-  if (permission === PERMISSIONS.CLOSE_DEAL) {
-    return ownsResource(user, resource) || user.role === ROLES.TEAM_LEADER && hasTeamAccess(user, resource);
-  }
+    case PERMISSIONS.REASSIGN_TASK:
+    case PERMISSIONS.ASSIGN_TASK:
+      return user.role === ROLES.TEAM_LEADER && isTeamResource(user, resource, teams);
 
-  return true;
+    case PERMISSIONS.VIEW_ALL_REPORTS:
+      return false;
+
+    case PERMISSIONS.VIEW_TEAM_REPORTS:
+      return user.role === ROLES.TEAM_LEADER && isTeamResource(user, resource, teams);
+
+    case PERMISSIONS.VIEW_OWN_REPORTS:
+      return isOwnResource(user, resource) || isTeamResource(user, resource, teams);
+
+    default:
+      return isInRoleScope(user, resource, teams);
+  }
 }
 
-export function hasTeamAccess(user, resource) {
-  const teamIds = user?.teamIds || [user?.teamId].filter(Boolean);
-  if (!teamIds.length) {
-    return false;
-  }
-  const resourceTeamIds = [
-    resource.teamId,
-    ...(resource.teamIds || []),
-  ].filter(Boolean);
-  return resourceTeamIds.some((teamId) => teamIds.includes(teamId));
-}
-
-export function ownsResource(user, resource) {
-  return Boolean(user?.id && (resource?.agentId === user.id || resource?.id === user.id));
-}
-
-export function canViewProperty(user, property) {
-  if (user.role === ROLES.MANAGER) {
+export function canViewProperty(user, property, teams = []) {
+  if (isManagerRole(user?.role)) {
     return can(user, PERMISSIONS.VIEW_ALL_PROPERTIES);
   }
-  if (user.role === ROLES.TEAM_LEADER) {
-    return can(user, PERMISSIONS.VIEW_TEAM_PROPERTIES, property);
+
+  if (user?.role === ROLES.TEAM_LEADER) {
+    return can(user, PERMISSIONS.VIEW_TEAM_PROPERTIES, property, { teams });
   }
-  return can(user, PERMISSIONS.VIEW_OWN_PROPERTIES, property) && ownsResource(user, property);
+
+  return can(user, PERMISSIONS.VIEW_OWN_PROPERTIES, property, { teams }) && isOwnResource(user, property);
 }
 
-export function canEditProperty(user, property) {
-  if (user.role === ROLES.MANAGER) {
+export function canEditProperty(user, property, teams = []) {
+  if (isManagerRole(user?.role)) {
     return can(user, PERMISSIONS.EDIT_TEAM_PROPERTY);
   }
-  if (user.role === ROLES.TEAM_LEADER) {
-    return can(user, PERMISSIONS.EDIT_TEAM_PROPERTY, property);
+
+  if (user?.role === ROLES.TEAM_LEADER) {
+    return can(user, PERMISSIONS.EDIT_TEAM_PROPERTY, property, { teams });
   }
-  return can(user, PERMISSIONS.EDIT_OWN_PROPERTY, property) && ownsResource(user, property);
+
+  return can(user, PERMISSIONS.EDIT_OWN_PROPERTY, property, { teams }) && isOwnResource(user, property);
 }
 
-export function canCloseDeal(user, property) {
-  if (user.role === ROLES.AGENT) {
-    return can(user, PERMISSIONS.CLOSE_DEAL, property) && ownsResource(user, property);
-  }
-  return can(user, PERMISSIONS.CLOSE_DEAL, property);
+export function canDeleteProperty(user, property, teams = []) {
+  return Boolean(property && isManagerRole(user?.role) && can(user, PERMISSIONS.DELETE_PROPERTY, property, { teams }));
 }
 
-export function canViewReport(user, resource) {
-  if (user.role === ROLES.MANAGER) {
-    return can(user, PERMISSIONS.VIEW_ALL_REPORTS);
+export function canCloseDeal(user, property, teams = []) {
+  if (isManagerRole(user?.role)) {
+    return can(user, PERMISSIONS.CLOSE_DEAL, property, { teams });
   }
-  if (user.role === ROLES.TEAM_LEADER) {
-    return can(user, PERMISSIONS.VIEW_TEAM_REPORTS, resource);
+
+  if (user?.role === ROLES.TEAM_LEADER) {
+    return can(user, PERMISSIONS.CLOSE_DEAL, property, { teams }) && isTeamResource(user, property, teams);
   }
-  return can(user, PERMISSIONS.VIEW_OWN_REPORTS, resource);
+
+  return can(user, PERMISSIONS.CLOSE_DEAL, property, { teams }) && isOwnResource(user, property);
+}
+
+export function canManageUser(user, targetUser) {
+  if (!targetUser) {
+    return isManagerRole(user?.role) && can(user, PERMISSIONS.MANAGE_USERS);
+  }
+
+  return Boolean(isManagerRole(user?.role) && targetUser.id !== user.id && can(user, PERMISSIONS.MANAGE_USERS));
+}
+
+export function canTransferAgent(user, agent, fromTeam, toTeam) {
+  if (!agent || !fromTeam || !toTeam || fromTeam.id === toTeam.id) {
+    return false;
+  }
+
+  if (canManageAcrossTeams(user)) {
+    return true;
+  }
+
+  const teamIds = getTeamIds(user);
+  return Boolean(
+    user?.role === ROLES.TEAM_LEADER &&
+      teamIds.includes(fromTeam.id) &&
+      teamIds.includes(toTeam.id) &&
+      agent.role === ROLES.AGENT,
+  );
+}
+
+export function canReassignProperty(user, property, targetAgent, teams = []) {
+  if (!property || !targetAgent || targetAgent.status === 'inactive' || targetAgent.isActive === false) {
+    return false;
+  }
+
+  if (canManageAcrossTeams(user)) {
+    return true;
+  }
+
+  if (user?.role !== ROLES.TEAM_LEADER) {
+    return false;
+  }
+
+  return isTeamResource(user, property, teams) && getTeamIds(user).includes(targetAgent.teamId);
+}
+
+export function canViewReport(user, reportScope) {
+  if (isManagerRole(user?.role)) {
+    return true;
+  }
+
+  if (user?.role === ROLES.TEAM_LEADER) {
+    return reportScope === 'team' || reportScope === 'personal';
+  }
+
+  return reportScope === 'personal';
+}
+
+export function canViewCommission(user, commission, teams = []) {
+  if (isManagerRole(user?.role)) {
+    return can(user, PERMISSIONS.VIEW_COMMISSIONS);
+  }
+
+  return can(user, PERMISSIONS.VIEW_COMMISSIONS, commission, { teams });
 }
 
 export function getVisibleTeams(user, teams) {
-  if (user.role === ROLES.MANAGER) {
-    return teams;
-  }
-  const teamIds = user.teamIds || [user.teamId].filter(Boolean);
-  return teams.filter((team) => teamIds.includes(team.id));
+  return filterTeamsByScope(user, teams);
 }
 
-export function getVisibleAgents(user, agents) {
-  if (user.role === ROLES.MANAGER) {
-    return agents;
-  }
-  if (user.role === ROLES.TEAM_LEADER) {
-    const teamIds = user.teamIds || [user.teamId].filter(Boolean);
-    return agents.filter((agent) => agent.id === user.id || teamIds.includes(agent.teamId));
-  }
-  return agents.filter((agent) => agent.id === user.id);
+export function getVisibleAgents(user, agents, teams = []) {
+  return filterAgentsByScope(user, agents, teams);
 }
 
 export function filterDataByUserAccess(user, data) {
-  const properties = data.properties.filter((property) => canViewProperty(user, property));
-  const propertyIds = new Set(properties.map((property) => property.id));
-  const agents = getVisibleAgents(user, data.agents || []);
-  const agentIds = new Set(agents.map((agent) => agent.id));
-  const teams = getVisibleTeams(user, data.teams || []);
+  const teams = data.teams || [];
+  const properties = filterPropertiesByScope(user, data.properties || [], teams);
+  const clients = filterClientsByScope(user, data.clients || [], data.properties || [], teams);
+  const agreements = filterAgreementsByScope(user, data.agreements || [], data.properties || [], teams);
+  const deals = filterDealsByScope(user, data.deals || [], data.properties || [], teams);
+  const tasks = filterTasksByScope(user, data.tasks || [], data.properties || [], teams);
+  const agents = filterAgentsByScope(user, data.agents || data.users || [], teams);
+  const visibleTeams = filterTeamsByScope(user, teams);
 
   return {
     ...data,
     properties,
+    clients,
+    agreements,
+    deals,
+    tasks,
     agents,
-    users: getVisibleAgents(user, data.users || data.agents || []),
-    teams,
-    tasks: (data.tasks || []).filter(
-      (task) => propertyIds.has(task.relatedPropertyId) || agentIds.has(task.agentId),
-    ),
-    deals: (data.deals || []).filter((deal) => propertyIds.has(deal.propertyId)),
+    users: agents,
+    teams: visibleTeams,
+    scope: getUserScope(user, data),
   };
 }

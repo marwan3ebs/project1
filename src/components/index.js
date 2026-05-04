@@ -21,3 +21,4 @@ export { TabButton } from './TabButton.js';
 export { TeamHierarchyTree } from './TeamHierarchyTree.js';
 export { UserScopeBanner } from './UserScopeBanner.js';
 export { ui } from './styles.js';
+export { BarChart, ChartCard, DonutChart, HorizontalBarChart, MetricTrend } from './charts/index.js';
