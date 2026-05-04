@@ -240,6 +240,23 @@ export function createSeedData() {
     }),
   ];
 
+  const agentsWithStats = agents.map((agent) => {
+    const agentProperties = properties.filter((item) => item.agentId === agent.id);
+    const activeInventoryCount = agentProperties.filter((item) => item.status !== 'closed').length;
+    const closedDeals = agentProperties.filter((item) => item.status === 'closed');
+    const commissionTotal = closedDeals.reduce(
+      (sum, item) => sum + buildDealFromProperty(item, 'confirmed').totalCommission,
+      0,
+    );
+
+    return {
+      ...agent,
+      commissionTotal,
+      activeInventoryCount,
+      closedDealsCount: closedDeals.length,
+    };
+  });
+
   const tasks = [
     {
       id: 'task-201',
@@ -291,5 +308,5 @@ export function createSeedData() {
     buildDealFromProperty(item, item.status === 'closed' ? 'confirmed' : 'potential'),
   );
 
-  return { version: 2, agents, teams, properties, tasks, deals };
+  return { version: 2, agents: agentsWithStats, teams, properties, tasks, deals };
 }

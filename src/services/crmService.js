@@ -124,9 +124,7 @@ export function addProperty(data, form) {
 }
 
 export function advancePropertyPhase(data, propertyId) {
-  return {
-    ...data,
-    properties: data.properties.map((property) => {
+  const properties = data.properties.map((property) => {
       if (property.id !== propertyId || property.status === 'closed') {
         return property;
       }
@@ -145,7 +143,14 @@ export function advancePropertyPhase(data, propertyId) {
       };
 
       return next;
-    }),
+    });
+
+  return {
+    ...data,
+    properties,
+    deals: properties.map((property) =>
+      buildDealFromProperty(property, property.status === 'closed' ? 'confirmed' : 'potential'),
+    ),
   };
 }
 

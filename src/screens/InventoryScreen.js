@@ -13,6 +13,7 @@ import {
   StatusBadge,
 } from '../components/index.js';
 import { AGREEMENT_TYPES, TRANSACTION_TYPES, UNIT_SOURCES } from '../constants/index.js';
+import { WORKFLOW_PHASES } from '../data/workflowPhases.js';
 import { getAgreementStatus } from '../services/crmService.js';
 import { calculateCommission, formatMoney } from '../utils/commissionUtils.js';
 import { filterProperties, sortPropertiesForCrm } from '../utils/filters.js';
@@ -103,6 +104,25 @@ export function InventoryScreen({ data, actions, navigate }) {
                 label={source.label}
                 active={filters.source === source.value}
                 onPress={() => updateFilter('source', filters.source === source.value ? 'all' : source.value)}
+              />
+            ))}
+          </View>
+          <View style={screen.divider} />
+          <Text style={screen.title}>Workflow phase</Text>
+          <View style={[screen.wrapRow, { marginTop: 8 }]}>
+            <FilterChip
+              label="All phases"
+              active={filters.currentPhase === 'all'}
+              onPress={() => updateFilter('currentPhase', 'all')}
+            />
+            {WORKFLOW_PHASES.map((phase) => (
+              <FilterChip
+                key={phase.id}
+                label={`P${phase.id}`}
+                active={Number(filters.currentPhase) === phase.id}
+                onPress={() =>
+                  updateFilter('currentPhase', Number(filters.currentPhase) === phase.id ? 'all' : phase.id)
+                }
               />
             ))}
           </View>

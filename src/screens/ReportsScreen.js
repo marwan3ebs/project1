@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { Card, PrimaryButton, ProgressBar, SectionHeader, StatCard } from '../components/index.js';
@@ -9,6 +9,7 @@ import { generateBiweeklyReport } from '../utils/reportUtils.js';
 import { screen } from './screenStyles.js';
 
 export function ReportsScreen({ data }) {
+  const [generatedAt, setGeneratedAt] = useState(null);
   const report = generateBiweeklyReport(data);
   const exportText = buildExportText(report);
 
@@ -80,8 +81,15 @@ export function ReportsScreen({ data }) {
       <SectionHeader title="Export-ready summary" subtitle="Use this text in the university presentation or manager report" />
       <Card>
         <Text style={screen.body}>{exportText}</Text>
+        {generatedAt ? (
+          <Text style={screen.meta}>Generated locally at {generatedAt}</Text>
+        ) : null}
         <View style={screen.actionRow}>
-          <PrimaryButton label="Generate Biweekly Report" onPress={() => {}} style={screen.actionFlex} />
+          <PrimaryButton
+            label="Generate Biweekly Report"
+            onPress={() => setGeneratedAt(new Date().toLocaleString('en'))}
+            style={screen.actionFlex}
+          />
         </View>
       </Card>
     </View>
