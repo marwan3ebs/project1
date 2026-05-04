@@ -105,3 +105,33 @@ This file records audit and organization steps so future work can reuse context 
 - Updated navigation to pass role-scoped data to screens while writing actions to the full local data set after permission checks.
 - Added desktop inventory table view and compact action groups while preserving mobile card layout.
 - Added RBAC, responsive redesign, CRM actions, and Claude reference notes documentation.
+
+### Step 12 - Maro RBAC ownership analytics continuation
+- Source branch used: `AhmedHassan`.
+- Working branch: `feature/maro-rbac-ownership-analytics`.
+- Current state: Ahmed's branch is a React Native / Expo app with AsyncStorage persistence, responsive mobile/desktop navigation, split screens, reusable components, seed users/teams/properties/tasks/deals, first-pass role switching, first-pass scoped data filtering, and several local CRM property actions.
+- RBAC already exists at demo level in `src/auth/roles.js`, `src/auth/permissions.js`, and `src/auth/accessControl.js`; `MainNavigator` passes scoped data to screens and checks permissions before basic property/task actions.
+- Still demo-level: access checks are not complete for clients, agreements, deals, reports, commissions, user management, ownership transfer, task reassignment, manager-only deletes, manager-only approvals, and audit history. Scope helpers are mixed into one file, ownership metadata is partial, and reports have only basic cards/lists without stronger analytics charts.
+- Implementation plan: add explicit RBAC permissions and scope helper modules, normalize hierarchy and ownership fields in seed/storage, add ownership/audit/team services, upgrade actions to log success/denied events, add ownership management inside Team screen, expand property/task/agreement/commission actions, add analytics utilities and React Native View-based charts, improve scoped reports by role, and document the finished model.
+
+### Step 13 - RBAC, ownership, and analytics implementation
+- Added `src/auth/scopeFilters.js` and `src/auth/ownership.js`.
+- Expanded `src/auth/permissions.js` and rebuilt `src/auth/accessControl.js` around the requested RBAC matrix.
+- Added `src/utils/dataModelUtils.js` to migrate/normalize v3 local demo data into the v4 ownership model.
+- Upgraded seed data to include clients, agreements, ownership/audit arrays, status fields, ownerAgentId, assignedAgentId, createdBy, updatedBy, and team ownership.
+- Added `src/services/auditService.js`, `src/services/teamService.js`, and `src/services/ownershipService.js`.
+- Added Team screen ownership management: hierarchy, add agent, edit quick actions, deactivate/delete guards, transfer agent, reassign property, reassign task, ownership history, and audit log.
+- Added manager/admin agreement approval and manager-only property delete.
+- Expanded property/client/task actions: follow-up, meeting, preview, pricing note, negotiation note, contract check, marketing, renewal, exclusivity upgrade, expiry, client note, call log, archive, reopen, close, commission received.
+- Added `src/utils/analyticsUtils.js` and React Native chart components under `src/components/charts/`.
+- Rebuilt Reports screen with role-scoped filters, summary cards, charts, ranked lists, risk alerts, recommendations, and export-ready report text.
+- Updated RBAC, CRM actions, team management, analytics, and README docs.
+
+### Step 14 - Validation
+- Ran `npm install` in the `CRMRemax` checkout; dependencies installed successfully. npm still reports 11 moderate Expo-tree vulnerabilities.
+- Ran `npm start -- --localhost --port 8098 --non-interactive`; Expo responded with HTTP `200`.
+- Ran `npm run web -- --localhost --port 8099 --non-interactive`; Expo web responded with HTTP `200`.
+- Ran `npx expo export --platform web` successfully after implementation and after the final audit mapping tweak.
+- Captured Edge headless screenshots for `1440x900`, `768x1024`, and `390x844`.
+- Mobile screenshot initially exposed metric-card horizontal overflow; fixed `StatCard` to stack cards on mobile while preserving compact desktop rows.
+- Validation screenshots are ignored under `validation-screenshots/`.
