@@ -117,19 +117,22 @@ export function MainNavigator() {
     },
     addTask: (form) => updateData((current) => addTask(current, form)),
     toggleTask: (taskId) => updateData((current) => toggleTaskStatus(current, taskId)),
-    resetDemo: () => {
+    resetDemo: async () => {
+      const performReset = async () => {
+        const seed = await resetCrmData();
+        setData(seed);
+        setNotice('Demo data was reset successfully.');
+        navigate('home');
+      };
+
+      if (Platform.OS === 'web') {
+        await performReset();
+        return;
+      }
+
       Alert.alert('Reset demo data', 'Restore seed CRM data and clear local edits?', [
         { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Reset',
-          style: 'destructive',
-          onPress: async () => {
-            const seed = await resetCrmData();
-            setData(seed);
-            setNotice('Demo data was reset successfully.');
-            navigate('home');
-          },
-        },
+        { text: 'Reset', style: 'destructive', onPress: performReset },
       ]);
     },
     seedDemo: async () => {
