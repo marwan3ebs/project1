@@ -3,6 +3,7 @@ import { Text, View } from 'react-native';
 
 import {
   AgreementBadge,
+  ActionMenu,
   Card,
   EmptyState,
   PhaseBadge,
@@ -11,13 +12,14 @@ import {
   SectionHeader,
   StatusBadge,
 } from '../components/index.js';
+import { canCloseDeal, canEditProperty } from '../auth/index.js';
 import { PROPERTY_TYPES, UNIT_SOURCES } from '../constants/index.js';
 import { getAgreementStatus, getPhase, getPhaseProgress } from '../services/crmService.js';
 import { calculateCommission, formatMoney } from '../utils/commissionUtils.js';
 import { formatDate } from '../utils/dateUtils.js';
 import { labelFor, screen } from './screenStyles.js';
 
-export function PropertyDetailScreen({ data, helpers, actions, navigate, route }) {
+export function PropertyDetailScreen({ data, helpers, actions, navigate, route, currentUser }) {
   const property = helpers.propertyById[route.params?.propertyId];
 
   if (!property) {
@@ -111,10 +113,25 @@ export function PropertyDetailScreen({ data, helpers, actions, navigate, route }
         </Card>
       ))}
 
-      <View style={screen.actionRow}>
-        <PrimaryButton label="Advance phase" onPress={() => actions.advancePhase(property.id)} disabled={property.status === 'closed'} style={screen.actionFlex} />
-        <PrimaryButton label="Close deal" onPress={() => actions.closeDeal(property.id)} tone="danger" disabled={property.status === 'closed'} style={screen.actionFlex} />
-      </View>
+      <SectionHeader title="Management actions" subtitle="Local demo actions persisted with AsyncStorage" />
+      <Card>
+        <ActionMenu actions={[
+          canEditProperty(currentUser, property) && { label: 'Advance phase', tone: 'dark', disabled: property.status === 'closed', onPress: () => actions.advancePhase(property.id) },
+          canEditProperty(currentUser, property) && { label: 'Move back', onPress: () => actions.propertyAction(property.id, 'move_back') },
+          canEditProperty(currentUser, property) && { label: 'Follow-up', onPress: () => actions.propertyAction(property.id, 'follow_up') },
+          canEditProperty(currentUser, property) && { label: 'Meeting', onPress: () => actions.propertyAction(property.id, 'meeting') },
+          canEditProperty(currentUser, property) && { label: 'Contract check', onPress: () => actions.propertyAction(property.id, 'contract_check') },
+          canEditProperty(currentUser, property) && { label: 'Renew 3 months', onPress: () => actions.propertyAction(property.id, 'renew_agreement') },
+          canEditProperty(currentUser, property) && property.agreementType !== 'exclusive' && { label: 'Make exclusive', onPress: () => actions.propertyAction(property.id, 'upgrade_exclusive') },
+          canEditProperty(currentUser, property) && { label: 'Marketing started', onPress: () => actions.propertyAction(property.id, 'marketing_started') },
+          canEditProperty(currentUser, property) && { label: 'Buyer preview', onPress: () => actions.propertyAction(property.id, 'buyer_preview') },
+          canCloseDeal(currentUser, property) && { label: 'Close deal', tone: 'danger', disabled: property.status === 'closed', onPress: () => actions.closeDeal(property.id) },
+          canCloseDeal(currentUser, property) && { label: 'Commission received', tone: 'primary', onPress: () => actions.propertyAction(property.id, 'commission_received') },
+          canEditProperty(currentUser, property) && property.status !== 'active' && { label: 'Reopen', onPress: () => actions.propertyAction(property.id, 'reopen') },
+          canEditProperty(currentUser, property) && { label: 'Duplicate', onPress: () => actions.propertyAction(property.id, 'duplicate') },
+          canEditProperty(currentUser, property) && { label: 'Archive', tone: 'danger', onPress: () => actions.propertyAction(property.id, 'archive') },
+        ]} />
+      </Card>
     </View>
   );
 }

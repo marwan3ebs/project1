@@ -73,3 +73,11 @@ Use a professional, operations-first mobile CRM style:
 ## Prototype vs Real CRM Assessment
 
 The app now demonstrates real CRM flows more clearly: dashboard, inventory, detail, add, workflow movement, closing, reports, team leader tracking, and reset. It remains a demo because authentication, backend validation, true exports, push notifications, audit logs, and production navigation are still pending.
+
+## 2026-05-04 Update - Responsive RBAC Branch
+
+- Improved desktop layout with sidebar navigation, compact header, max-width content, compact action buttons, and inventory table view.
+- Preserved mobile stacked cards and bottom tabs.
+- Added a current role/scope banner so presenters can explain Manager, Team Leader, and Agent access.
+- Replaced oversized desktop inventory card actions with compact table action groups.
+- Remaining UI work: add desktop detail drawer, richer report tables/charts, and better web keyboard/focus states.

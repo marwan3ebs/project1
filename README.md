@@ -1,6 +1,6 @@
 # Top Agents Collaboration
 
-React Native / Expo mobile CRM demo for RE/MAX Top Agents. The app manages real estate inventory, seller and rent agreements, resale workflow phases, agent scheduling, biweekly reporting, team leader performance, and local demo persistence.
+React Native / Expo CRM demo for RE/MAX Top Agents. The app manages real estate inventory, seller and rent agreements, resale workflow phases, agent scheduling, biweekly reporting, role-based dashboards, team performance, and local demo persistence.
 
 ## Current Features
 
@@ -13,6 +13,9 @@ React Native / Expo mobile CRM demo for RE/MAX Top Agents. The app manages real 
 - Team leader dashboard with inventory, target progress, closed deals, exclusive listings, follow-up load, and commission scorecards.
 - Settings/demo screen for reset, seeding, app info, and role demo explanation.
 - Local persistence with AsyncStorage and safe fallback to seed data if stored data is corrupted.
+- Responsive desktop CRM layout with sidebar navigation, max-width content, compact tables, and smaller desktop action buttons.
+- Role switcher for Manager, Team Leader, and Agent demos with scoped data visibility.
+- Advanced local CRM actions including renewal, exclusivity upgrade, task creation, marketing start, buyer preview, duplicate, archive, reopen, and commission received.
 
 ## Tech Stack
 
@@ -61,6 +64,8 @@ npx expo export --platform web
     |-- components/
     |-- constants/
     |-- data/
+    |-- auth/
+    |-- theme/
     |-- navigation/
     |-- screens/
     |-- services/
@@ -82,7 +87,7 @@ npx expo export --platform web
 | Schedule | Add and manage CRM follow-ups and meetings. |
 | Reports | Generate biweekly manager report data and export-ready text. |
 | Team | Team leader scorecards and performance tracking. |
-| Settings | Reset/seed demo data and explain roles. |
+| Settings | Reset/seed demo data, switch roles, and inspect permission scope. |
 
 ## Demo Workflow
 
@@ -93,7 +98,8 @@ npx expo export --platform web
 5. Close a deal and show confirmed commission.
 6. Open Reports and generate the biweekly summary.
 7. Open Team to show team leader tracking.
-8. Open Settings and reset demo data.
+8. Switch role to Team Leader or Agent to show scoped data.
+9. Open Settings and reset demo data.
 
 ## Branch Workflow
 
@@ -106,7 +112,7 @@ feature branches -> dev -> main
 Current upgrade branch:
 
 ```text
-feature/full-crm-upgrade
+feature/responsive-rbac-crm-actions
 ```
 
 Do not merge this feature branch into `dev` until validation is complete and reviewed.
@@ -115,6 +121,9 @@ Do not merge this feature branch into `dev` until validation is complete and rev
 
 - `docs/CRM_DATA_MODEL.md`
 - `docs/DEMO_SCRIPT.md`
+- `docs/RBAC_MODEL.md`
+- `docs/UI_RESPONSIVE_REDESIGN.md`
+- `docs/CRM_ACTIONS.md`
 - `docs/NEXT_BACKEND_PLAN.md`
 - `docs/TECHNICAL_AUDIT.md`
 - `docs/UI_UX_AUDIT.md`

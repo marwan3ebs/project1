@@ -1,17 +1,20 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 
-import { COLORS } from '../constants/index.js';
+import { colors } from '../theme/index.js';
+import { useResponsive } from '../hooks/useResponsive.js';
 
-export function PrimaryButton({ label, onPress, tone = 'primary', disabled = false, style }) {
+export function PrimaryButton({ label, onPress, tone = 'primary', disabled = false, style, size = 'md' }) {
+  const responsive = useResponsive();
+  const compact = responsive.isDesktop || size === 'sm';
   return (
     <TouchableOpacity
-      style={[styles.button, styles[tone], disabled && styles.disabled, style]}
+      style={[styles.button, compact && styles.compact, styles[tone], disabled && styles.disabled, style]}
       onPress={onPress}
       disabled={disabled}
       activeOpacity={0.82}
     >
-      <Text style={styles.text}>{label}</Text>
+      <Text style={[styles.text, compact && styles.compactText]}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -24,14 +27,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  compact: {
+    minHeight: 34,
+    paddingHorizontal: 10,
+  },
   primary: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: colors.primary,
   },
   dark: {
-    backgroundColor: COLORS.ink,
+    backgroundColor: colors.ink,
   },
   danger: {
-    backgroundColor: COLORS.danger,
+    backgroundColor: colors.danger,
   },
   muted: {
     backgroundColor: '#64748b',
@@ -43,5 +50,8 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 14,
     fontWeight: '900',
+  },
+  compactText: {
+    fontSize: 12,
   },
 });

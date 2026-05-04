@@ -192,6 +192,217 @@ export function closePropertyDeal(data, propertyId) {
   };
 }
 
+function syncDeals(data, properties) {
+  return {
+    ...data,
+    properties,
+    deals: properties.map((property) =>
+      buildDealFromProperty(property, property.status === 'closed' ? 'confirmed' : 'potential'),
+    ),
+  };
+}
+
+export function movePropertyPhaseBack(data, propertyId, reason = 'Manager review') {
+  const properties = data.properties.map((property) => {
+    if (property.id !== propertyId || property.status === 'closed') {
+      return property;
+    }
+    const previousPhase = Math.max(Number(property.currentPhase || 1) - 1, 1);
+    return {
+      ...property,
+      currentPhase: previousPhase,
+      updatedAt: daysFromToday(0),
+      phaseHistory: [
+        ...(property.phaseHistory || []),
+        { phaseId: previousPhase, title: `Moved back: ${getPhase(previousPhase).title}`, changedAt: daysFromToday(0), reason },
+      ],
+    };
+  });
+  return syncDeals(data, properties);
+}
+
+export function renewAgreement(data, propertyId) {
+  return syncDeals(
+    data,
+    data.properties.map((property) =>
+      property.id === propertyId
+        ? {
+            ...property,
+            agreementStartDate: daysFromToday(0),
+            agreementEndDate: addMonths(daysFromToday(0), 3),
+            agreementStatus: 'renewed',
+            updatedAt: daysFromToday(0),
+            notes: `${property.notes || ''}\nAgreement renewed for 3 months.`.trim(),
+          }
+        : property,
+    ),
+  );
+}
+
+export function upgradeAgreementToExclusive(data, propertyId) {
+  return syncDeals(
+    data,
+    data.properties.map((property) =>
+      property.id === propertyId
+        ? {
+            ...property,
+            agreementType: 'exclusive',
+            updatedAt: daysFromToday(0),
+            notes: `${property.notes || ''}\nAgreement upgraded to exclusive.`.trim(),
+          }
+        : property,
+    ),
+  );
+}
+
+export function changePropertyStatus(data, propertyId, status) {
+  return syncDeals(
+    data,
+    data.properties.map((property) =>
+      property.id === propertyId
+        ? {
+            ...property,
+            status,
+            closedAt: status === 'closed' ? property.closedAt || daysFromToday(0) : property.closedAt,
+            updatedAt: daysFromToday(0),
+          }
+        : property,
+    ),
+  );
+}
+
+export function reassignProperty(data, propertyId, agentId) {
+  const agent = getAgent(data, agentId);
+  return syncDeals(
+    data,
+    data.properties.map((property) =>
+      property.id === propertyId && agent
+        ? {
+            ...property,
+            agentId: agent.id,
+            agentName: agent.name,
+            teamId: agent.teamId,
+            updatedAt: daysFromToday(0),
+          }
+        : property,
+    ),
+  );
+}
+
+export function duplicateProperty(data, propertyId) {
+  const source = data.properties.find((property) => property.id === propertyId);
+  if (!source) {
+    return data;
+  }
+  const copy = {
+    ...source,
+    id: `prop-${Date.now()}`,
+    agreementCode: generateAgreementCode(data.properties),
+    status: 'active',
+    closedAt: null,
+    currentPhase: 1,
+    phaseHistory: [{ phaseId: 1, title: getPhase(1).title, changedAt: daysFromToday(0) }],
+    notes: `${source.notes || ''}\nDuplicated for a similar client/property workflow.`.trim(),
+    createdAt: daysFromToday(0),
+    updatedAt: daysFromToday(0),
+  };
+  return {
+    ...data,
+    properties: [copy, ...data.properties],
+    deals: [buildDealFromProperty(copy, 'potential'), ...(data.deals || [])],
+  };
+}
+
+export function addInternalNote(data, propertyId, note = 'Internal CRM note added.') {
+  return {
+    ...data,
+    properties: data.properties.map((property) =>
+      property.id === propertyId
+        ? { ...property, notes: `${property.notes || ''}\n${note}`.trim(), updatedAt: daysFromToday(0) }
+        : property,
+    ),
+  };
+}
+
+export function markCommissionReceived(data, propertyId) {
+  return {
+    ...closePropertyDeal(data, propertyId),
+    deals: (closePropertyDeal(data, propertyId).deals || []).map((deal) =>
+      deal.propertyId === propertyId
+        ? { ...deal, status: 'confirmed', commissionReceivedAt: daysFromToday(0) }
+        : deal,
+    ),
+  };
+}
+
+export function runPropertyAction(data, propertyId, actionType, payload = {}) {
+  const property = data.properties.find((item) => item.id === propertyId);
+  switch (actionType) {
+    case 'move_back':
+      return movePropertyPhaseBack(data, propertyId, payload.reason);
+    case 'renew_agreement':
+      return renewAgreement(data, propertyId);
+    case 'upgrade_exclusive':
+      return upgradeAgreementToExclusive(data, propertyId);
+    case 'archive':
+      return changePropertyStatus(data, propertyId, 'archived');
+    case 'pause':
+      return changePropertyStatus(data, propertyId, 'paused');
+    case 'reopen':
+      return changePropertyStatus(data, propertyId, 'active');
+    case 'duplicate':
+      return duplicateProperty(data, propertyId);
+    case 'marketing_started':
+      return addInternalNote(data, propertyId, 'Marketing started and ads status reviewed.');
+    case 'buyer_preview':
+      return addTask(data, {
+        title: 'Buyer preview scheduled',
+        type: 'initial_preview',
+        relatedPropertyId: propertyId,
+        agentId: property?.agentId,
+        dueDate: daysFromToday(1),
+        priority: 'medium',
+        notes: 'Buyer preview created from property action menu.',
+      });
+    case 'follow_up':
+      return addTask(data, {
+        title: 'Client follow-up',
+        type: 'follow_up',
+        relatedPropertyId: propertyId,
+        agentId: property?.agentId,
+        dueDate: daysFromToday(1),
+        priority: 'medium',
+        notes: 'Follow-up created from property action menu.',
+      });
+    case 'meeting':
+      return addTask(data, {
+        title: 'Negotiation meeting',
+        type: 'meeting',
+        relatedPropertyId: propertyId,
+        agentId: property?.agentId,
+        dueDate: daysFromToday(2),
+        priority: 'high',
+        notes: 'Meeting created from property action menu.',
+      });
+    case 'contract_check':
+      return addTask(data, {
+        title: 'Contract check task',
+        type: 'contract_check',
+        relatedPropertyId: propertyId,
+        agentId: property?.agentId,
+        dueDate: daysFromToday(2),
+        priority: 'high',
+        notes: 'Contract check created from property action menu.',
+      });
+    case 'commission_received':
+      return markCommissionReceived(data, propertyId);
+    case 'internal_note':
+      return addInternalNote(data, propertyId, payload.note);
+    default:
+      return data;
+  }
+}
+
 export function addTask(data, form) {
   return {
     ...data,

@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { createSeedData } from '../data/sampleData.js';
 
-const STORAGE_KEY = 'top-agents-collaboration:v2';
+const STORAGE_KEY = 'top-agents-collaboration:v3';
 
 export async function loadCrmData() {
   try {
@@ -18,7 +18,17 @@ export async function loadCrmData() {
       throw new Error('Stored CRM data has an invalid shape.');
     }
 
-    return { data: parsed, error: null, restoredFromSeed: false };
+    return {
+      data: {
+        ...parsed,
+        version: parsed.version || 3,
+        users: parsed.users || parsed.agents,
+        deals: parsed.deals || [],
+        tasks: parsed.tasks || [],
+      },
+      error: null,
+      restoredFromSeed: false,
+    };
   } catch (error) {
     return {
       data: createSeedData(),

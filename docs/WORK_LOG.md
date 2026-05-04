@@ -92,3 +92,16 @@ This file records audit and organization steps so future work can reuse context 
 - Tested Settings reset; inventory returned to 5 records and the validation property disappeared.
 - Checked a `390x844` mobile viewport.
 - Browser console had no errors. React Native Web produced one known development warning about deprecated `props.pointerEvents`.
+
+### Step 11 - Responsive RBAC CRM branch
+- Continued from `feature/full-crm-upgrade`.
+- Created `feature/responsive-rbac-crm-actions`.
+- Inspected `claude-ai-share-2026-05-04-13_46_02.pdf` as architecture/product reference only.
+- Added theme tokens under `src/theme/` and responsive helpers under `src/hooks/useResponsive.js`.
+- Added desktop sidebar navigation, compact header behavior, role switcher, role scope banner, data table, action menu, and team hierarchy components.
+- Added RBAC helpers under `src/auth/` for roles, permissions, access checks, visible agents/teams, and scoped data filtering.
+- Upgraded seed data to v3 with `users`, richer team hierarchy fields, email, teamIds, managerId, leaderId, permissions, and active flags.
+- Added local CRM actions for phase rollback, agreement renewal, exclusivity upgrade, follow-up/meeting/contract tasks, marketing started, buyer preview, commission received, duplicate, archive, pause, and reopen.
+- Updated navigation to pass role-scoped data to screens while writing actions to the full local data set after permission checks.
+- Added desktop inventory table view and compact action groups while preserving mobile card layout.
+- Added RBAC, responsive redesign, CRM actions, and Claude reference notes documentation.

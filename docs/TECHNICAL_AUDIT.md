@@ -119,3 +119,14 @@ The suggested `npm audit fix --force` would install `expo@49.0.23`, which is a b
 6. Replace `ScrollView` lists with `FlatList` where records can grow.
 7. Add linting, formatting, and a basic test setup.
 8. Add role-based authentication before real CRM data is used.
+
+## 2026-05-04 Update - Responsive RBAC Branch
+
+- Added a dedicated theme layer under `src/theme/`.
+- Added `useResponsive` for mobile/tablet/desktop branching.
+- Added `src/auth/` with role constants, permission matrix, demo users, and access-control helpers.
+- Navigation now filters data by current user scope before rendering screens.
+- CRM write actions still update the full local data set, but permission checks run before mutation.
+- Seed data now includes users and richer team hierarchy fields.
+- Storage key moved to v3 to avoid stale v2 shape issues.
+- Remaining technical risk: this is still a local demo without real auth, backend enforcement, audit logs, or server validation.

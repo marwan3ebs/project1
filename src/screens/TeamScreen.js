@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 
-import { Card, ProgressBar, SectionHeader, SelectInput, StatCard, StatusBadge } from '../components/index.js';
+import { Card, ProgressBar, SectionHeader, SelectInput, StatCard, StatusBadge, TeamHierarchyTree } from '../components/index.js';
+import { ROLES } from '../auth/index.js';
 import { calculateCommission, formatMoney } from '../utils/commissionUtils.js';
 import { screen } from './screenStyles.js';
 
-export function TeamScreen({ data }) {
+export function TeamScreen({ data, allData, currentUser }) {
   const [teamId, setTeamId] = useState(data.teams[0]?.id || '');
   const teamOptions = data.teams.map((team) => ({ value: team.id, label: team.name }));
 
@@ -24,8 +25,12 @@ export function TeamScreen({ data }) {
 
   return (
     <View>
-      <SectionHeader title="Team leader dashboard" subtitle="Inventory, targets, follow-up load, and commission" />
-      <SelectInput label="Team" options={teamOptions} value={teamId} onChange={setTeamId} />
+      <SectionHeader title={currentUser?.role === ROLES.AGENT ? 'Personal performance' : 'Team leader dashboard'} subtitle="Inventory, targets, follow-up load, and commission" />
+      {currentUser?.role !== ROLES.AGENT ? <SelectInput label="Team" options={teamOptions} value={teamId} onChange={setTeamId} /> : null}
+
+      <Card>
+        <TeamHierarchyTree teams={data.teams} agents={data.agents} manager={(allData?.agents || data.agents).find((agent) => agent.role === 'manager')} />
+      </Card>
 
       <View style={screen.grid}>
         <StatCard label="Team inventory" value={activeProperties.length} detail="Active agreements" />

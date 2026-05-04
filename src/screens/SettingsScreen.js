@@ -1,11 +1,12 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 
-import { Card, PrimaryButton, SectionHeader, StatusBadge } from '../components/index.js';
+import { Card, PrimaryButton, RoleSwitcher, SectionHeader, StatusBadge } from '../components/index.js';
+import { ROLE_LABELS, ROLE_PERMISSIONS } from '../auth/index.js';
 import { COMPANY } from '../constants/index.js';
 import { screen } from './screenStyles.js';
 
-export function SettingsScreen({ data, actions }) {
+export function SettingsScreen({ data, allData, actions, currentUser }) {
   return (
     <View>
       <SectionHeader title="Demo settings" subtitle="Reset, seed, and explain the local CRM demo" />
@@ -39,9 +40,13 @@ export function SettingsScreen({ data, actions }) {
 
       <Card>
         <Text style={screen.title}>Role demo</Text>
-        <Text style={screen.body}>
-          Manager: use Home and Reports. Team leader: use Team. Agents: use Inventory, Property Details, and Schedule.
-        </Text>
+        <Text style={screen.body}>Switch roles to validate manager, team leader, and agent visibility.</Text>
+        <View style={{ marginTop: 12 }}>
+          <RoleSwitcher users={allData?.users || data.users || data.agents} currentUser={currentUser} onChange={actions.switchUser} />
+        </View>
+        <View style={screen.divider} />
+        <Text style={screen.meta}>Active role: {ROLE_LABELS[currentUser?.role] || currentUser?.role}</Text>
+        <Text style={screen.body}>{(ROLE_PERMISSIONS[currentUser?.role] || []).join(', ')}</Text>
       </Card>
     </View>
   );

@@ -15,7 +15,7 @@
 - Completed: add property/agreement form with validation.
 - Completed: search/filter inventory.
 - Completed: report export-ready text.
-- Remaining: add role-based demo switch or login stub.
+- Completed on `feature/responsive-rbac-crm-actions`: add role-based demo switch and RBAC-scoped data visibility.
 - Remaining: replace custom navigation with React Navigation or Expo Router if the project will keep growing.
 
 ## Phase 2 - CRM Quality
@@ -23,18 +23,18 @@
 - Add TypeScript.
 - Add data models and validation schemas.
 - Add service layer for storage and future API work.
-- Add agreement renewal and expiry workflows.
+- Completed in local demo form: add agreement renewal and expiry workflows.
 - Add calendar view.
 - Add client profiles and follow-up history.
-- Add activity timeline.
+- Add fuller client profile and activity timeline screens.
 - Add FlatList virtualization for inventory and task lists.
 - Add native date pickers and better phone/number formatting.
 
 ## Phase 3 - Backend and Production Readiness
 
-- Add authentication.
+- Add real authentication mapped to the current local RBAC model.
 - Add database/API.
-- Add role-based permissions.
+- Completed in local demo form: add role-based permissions.
 - Add notifications.
 - Add report generation service.
 - Add audit logs.

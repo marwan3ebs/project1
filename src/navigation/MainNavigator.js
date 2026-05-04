@@ -10,14 +10,18 @@ import {
   View,
 } from 'react-native';
 
-import { AppHeader, BottomTabs } from '../components/index.js';
-import { COLORS, TABS } from '../constants/index.js';
+import { AppHeader, BottomTabs, RoleSwitcher, SidebarNav, UserScopeBanner } from '../components/index.js';
+import { DEFAULT_DEMO_USER_ID, PERMISSIONS, can, canCloseDeal, canViewProperty, filterDataByUserAccess } from '../auth/index.js';
+import { colors, layout, spacing } from '../theme/index.js';
+import { TABS } from '../constants/index.js';
+import { useResponsive } from '../hooks/useResponsive.js';
 import {
   addProperty,
   addTask,
   advancePropertyPhase,
   closePropertyDeal,
   getAgreementReminders,
+  runPropertyAction,
   toggleTaskStatus,
 } from '../services/crmService.js';
 import { loadCrmData, resetCrmData, saveCrmData } from '../services/storageService.js';
@@ -44,6 +48,7 @@ const routeTitles = {
 
 export function MainNavigator() {
   const [data, setData] = useState(() => createSeedData());
+  const [currentUserId, setCurrentUserId] = useState(DEFAULT_DEMO_USER_ID);
   const [hydrated, setHydrated] = useState(false);
   const [route, setRoute] = useState({ name: 'home' });
   const [notice, setNotice] = useState(null);
@@ -90,7 +95,28 @@ export function MainNavigator() {
     return { agentById, propertyById, teamById };
   }, [data]);
 
-  const reminders = useMemo(() => getAgreementReminders(data.properties, 30), [data.properties]);
+  const currentUser = useMemo(
+    () => (data.users || data.agents).find((user) => user.id === currentUserId) || (data.users || data.agents)[0],
+    [data, currentUserId],
+  );
+
+  const visibleData = useMemo(
+    () => filterDataByUserAccess(currentUser, data),
+    [currentUser, data],
+  );
+
+  const visibleHelpers = useMemo(() => {
+    const agentById = Object.fromEntries(visibleData.agents.map((agent) => [agent.id, agent]));
+    const propertyById = Object.fromEntries(
+      visibleData.properties.map((property) => [property.id, property]),
+    );
+    const teamById = Object.fromEntries(visibleData.teams.map((team) => [team.id, team]));
+
+    return { agentById, propertyById, teamById };
+  }, [visibleData]);
+
+  const reminders = useMemo(() => getAgreementReminders(visibleData.properties, 30), [visibleData.properties]);
+  const responsive = useResponsive();
 
   function navigate(name, params = {}) {
     setRoute({ name, params });
@@ -106,17 +132,56 @@ export function MainNavigator() {
 
   const actions = {
     addProperty: (form) => {
+      if (!can(currentUser, PERMISSIONS.CREATE_PROPERTY)) {
+        setNotice('This role cannot create property agreements.');
+        return;
+      }
       updateData((current) => addProperty(current, form));
       navigate('inventory');
     },
     advancePhase: (propertyId) => {
+      const property = data.properties.find((item) => item.id === propertyId);
+      if (!can(currentUser, PERMISSIONS.ADVANCE_DEAL_PHASE, property)) {
+        setNotice('This role cannot advance that deal phase.');
+        return;
+      }
       updateData((current) => advancePropertyPhase(current, propertyId));
     },
     closeDeal: (propertyId) => {
+      const property = data.properties.find((item) => item.id === propertyId);
+      if (!canCloseDeal(currentUser, property)) {
+        setNotice('This role cannot close that deal.');
+        return;
+      }
       updateData((current) => closePropertyDeal(current, propertyId));
     },
-    addTask: (form) => updateData((current) => addTask(current, form)),
-    toggleTask: (taskId) => updateData((current) => toggleTaskStatus(current, taskId)),
+    propertyAction: (propertyId, actionType, payload) => {
+      const property = data.properties.find((item) => item.id === propertyId);
+      if (!canViewProperty(currentUser, property)) {
+        setNotice('This property is outside the current role scope.');
+        return;
+      }
+      updateData((current) => runPropertyAction(current, propertyId, actionType, payload));
+      setNotice('CRM action saved locally.');
+    },
+    addTask: (form) => {
+      if (!can(currentUser, PERMISSIONS.CREATE_TASK)) {
+        setNotice('This role cannot create tasks.');
+        return;
+      }
+      updateData((current) => addTask(current, form));
+    },
+    toggleTask: (taskId) => {
+      if (!can(currentUser, PERMISSIONS.COMPLETE_TASK)) {
+        setNotice('This role cannot complete tasks.');
+        return;
+      }
+      updateData((current) => toggleTaskStatus(current, taskId));
+    },
+    switchUser: (userId) => {
+      setCurrentUserId(userId);
+      navigate('home');
+    },
     resetDemo: async () => {
       const performReset = async () => {
         const seed = await resetCrmData();
@@ -143,12 +208,16 @@ export function MainNavigator() {
   };
 
   const screenProps = {
-    data,
-    helpers,
+    data: visibleData,
+    allData: data,
+    helpers: visibleHelpers,
+    allHelpers: helpers,
     reminders,
     actions,
     navigate,
     route,
+    currentUser,
+    responsive,
   };
 
   const tabName = TABS.some((tab) => tab.id === route.name) ? route.name : 'inventory';
@@ -159,7 +228,16 @@ export function MainNavigator() {
         style={styles.keyboard}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <AppHeader routeLabel={routeTitles[route.name]} />
+        <View style={responsive.showSidebar ? styles.desktopShell : styles.mobileShell}>
+        {responsive.showSidebar ? (
+          <SidebarNav activeTab={tabName} onChange={setTab} currentUser={currentUser} />
+        ) : null}
+        <View style={styles.mainPane}>
+        <AppHeader routeLabel={routeTitles[route.name]} currentUser={currentUser} compact={responsive.isDesktop}>
+          {responsive.isDesktop ? (
+            <RoleSwitcher users={data.users || data.agents} currentUser={currentUser} onChange={actions.switchUser} />
+          ) : null}
+        </AppHeader>
         {(notice || storageError) ? (
           <View style={styles.notice}>
             <Text style={styles.noticeText}>{notice || storageError}</Text>
@@ -167,9 +245,13 @@ export function MainNavigator() {
         ) : null}
         <ScrollView
           style={styles.content}
-          contentContainerStyle={styles.contentInner}
+          contentContainerStyle={[
+            styles.contentInner,
+            responsive.isDesktop && { width: '100%', maxWidth: responsive.contentMaxWidth, alignSelf: 'center', paddingHorizontal: spacing[6], paddingBottom: spacing[8] },
+          ]}
           showsVerticalScrollIndicator={false}
         >
+          <UserScopeBanner user={currentUser} visibleCounts={{ properties: visibleData.properties.length }} />
           {route.name === 'home' ? <HomeScreen {...screenProps} /> : null}
           {route.name === 'inventory' ? <InventoryScreen {...screenProps} /> : null}
           {route.name === 'propertyDetail' ? <PropertyDetailScreen {...screenProps} /> : null}
@@ -179,7 +261,9 @@ export function MainNavigator() {
           {route.name === 'team' ? <TeamScreen {...screenProps} /> : null}
           {route.name === 'settings' ? <SettingsScreen {...screenProps} /> : null}
         </ScrollView>
-        <BottomTabs activeTab={tabName} onChange={setTab} />
+        {responsive.showBottomTabs ? <BottomTabs activeTab={tabName} onChange={setTab} /> : null}
+        </View>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -188,7 +272,7 @@ export function MainNavigator() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: colors.bg,
   },
   keyboard: {
     flex: 1,
@@ -209,8 +293,18 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   noticeText: {
-    color: COLORS.warning,
+    color: colors.warning,
     fontWeight: '800',
     fontSize: 12,
+  },
+  desktopShell: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  mobileShell: {
+    flex: 1,
+  },
+  mainPane: {
+    flex: 1,
   },
 });

@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-import { COLORS } from '../constants/index.js';
+import { colors } from '../theme/index.js';
 
 export const screen = StyleSheet.create({
   grid: {
@@ -26,18 +26,18 @@ export const screen = StyleSheet.create({
     gap: 8,
   },
   title: {
-    color: COLORS.ink,
+    color: colors.ink,
     fontSize: 16,
     fontWeight: '900',
   },
   meta: {
-    color: COLORS.muted,
+    color: colors.muted,
     fontSize: 12,
     fontWeight: '700',
     marginTop: 4,
   },
   body: {
-    color: COLORS.text,
+    color: colors.text,
     fontSize: 13,
     lineHeight: 20,
     marginTop: 8,
@@ -53,13 +53,13 @@ export const screen = StyleSheet.create({
     minHeight: 54,
   },
   infoLabel: {
-    color: COLORS.muted,
+    color: colors.muted,
     fontSize: 11,
     fontWeight: '900',
     textTransform: 'uppercase',
   },
   infoValue: {
-    color: COLORS.ink,
+    color: colors.ink,
     fontSize: 13,
     fontWeight: '800',
     marginTop: 4,

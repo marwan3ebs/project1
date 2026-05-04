@@ -1,15 +1,16 @@
 import { StyleSheet } from 'react-native';
 
-import { COLORS } from '../constants/index.js';
+import { colors, shadows } from '../theme/index.js';
 
 export const ui = StyleSheet.create({
   card: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: colors.panel,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#dce6e9',
+    borderColor: colors.border,
     padding: 14,
     marginBottom: 12,
+    ...shadows.card,
   },
   row: {
     flexDirection: 'row',
@@ -23,18 +24,18 @@ export const ui = StyleSheet.create({
     gap: 10,
   },
   label: {
-    color: COLORS.muted,
+    color: colors.muted,
     fontSize: 11,
     fontWeight: '800',
     textTransform: 'uppercase',
   },
   title: {
-    color: COLORS.ink,
+    color: colors.ink,
     fontSize: 16,
     fontWeight: '900',
   },
   body: {
-    color: COLORS.text,
+    color: colors.text,
     fontSize: 13,
     lineHeight: 20,
   },

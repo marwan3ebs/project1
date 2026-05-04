@@ -3,7 +3,9 @@ import { Text, View } from 'react-native';
 
 import {
   AgreementBadge,
+  ActionMenu,
   Card,
+  DataTable,
   EmptyState,
   FilterChip,
   PhaseBadge,
@@ -12,6 +14,7 @@ import {
   SectionHeader,
   StatusBadge,
 } from '../components/index.js';
+import { canCloseDeal, canEditProperty, canViewProperty } from '../auth/index.js';
 import { AGREEMENT_TYPES, TRANSACTION_TYPES, UNIT_SOURCES } from '../constants/index.js';
 import { WORKFLOW_PHASES } from '../data/workflowPhases.js';
 import { getAgreementStatus } from '../services/crmService.js';
@@ -29,7 +32,7 @@ const initialFilters = {
   expiringSoon: false,
 };
 
-export function InventoryScreen({ data, actions, navigate }) {
+export function InventoryScreen({ data, actions, navigate, currentUser, responsive }) {
   const [filters, setFilters] = useState(initialFilters);
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
@@ -133,20 +136,52 @@ export function InventoryScreen({ data, actions, navigate }) {
         <EmptyState title="No matching inventory" body="Clear filters or add a new property agreement." />
       ) : null}
 
-      {filteredProperties.map((property) => (
-        <InventoryCard
-          key={property.id}
-          property={property}
-          onView={() => navigate('propertyDetail', { propertyId: property.id })}
-          onAdvance={() => actions.advancePhase(property.id)}
-          onClose={() => actions.closeDeal(property.id)}
+      {responsive?.isDesktop && filteredProperties.length ? (
+        <DataTable
+          columns={[
+            { key: 'code', label: 'Agreement', flex: 0.9, render: (row) => row.agreementCode },
+            { key: 'location', label: 'Location', flex: 1.6, render: (row) => row.location },
+            { key: 'agent', label: 'Agent', render: (row) => row.agentName },
+            { key: 'customer', label: 'Customer', render: (row) => row.customerName },
+            { key: 'price', label: 'Price', render: (row) => formatMoney(row.price) },
+            { key: 'phase', label: 'Phase', render: (row) => `P${row.currentPhase}` },
+            { key: 'expiry', label: 'Expiry', render: (row) => getAgreementStatus(row).label },
+          ]}
+          rows={filteredProperties}
+          keyExtractor={(row) => row.id}
+          renderActions={(property) => (
+            <ActionMenu compact actions={buildPropertyActions({ property, currentUser, actions, navigate })} />
+          )}
         />
-      ))}
+      ) : (
+        filteredProperties.map((property) => (
+          <InventoryCard
+            key={property.id}
+            property={property}
+            currentUser={currentUser}
+            onView={() => navigate('propertyDetail', { propertyId: property.id })}
+            onAdvance={() => actions.advancePhase(property.id)}
+            onClose={() => actions.closeDeal(property.id)}
+          />
+        ))
+      )}
     </View>
   );
 }
 
-function InventoryCard({ property, onView, onAdvance, onClose }) {
+function buildPropertyActions({ property, currentUser, actions, navigate }) {
+  const canView = canViewProperty(currentUser, property);
+  const canEdit = canEditProperty(currentUser, property);
+  const canClose = canCloseDeal(currentUser, property);
+  return [
+    canView && { label: 'Details', tone: 'primary', onPress: () => navigate('propertyDetail', { propertyId: property.id }) },
+    canEdit && { label: 'Advance', tone: 'dark', disabled: property.status === 'closed', onPress: () => actions.advancePhase(property.id) },
+    canEdit && { label: 'Follow-up', onPress: () => actions.propertyAction(property.id, 'follow_up') },
+    canClose && { label: 'Close', tone: 'danger', disabled: property.status === 'closed', onPress: () => actions.closeDeal(property.id) },
+  ];
+}
+
+function InventoryCard({ property, currentUser, onView, onAdvance, onClose }) {
   const expiry = getAgreementStatus(property);
   const commission = calculateCommission(property);
 
@@ -177,11 +212,11 @@ function InventoryCard({ property, onView, onAdvance, onClose }) {
 
       <Text style={screen.body}>{property.notes}</Text>
 
-      <View style={screen.actionRow}>
-        <PrimaryButton label="View details" onPress={onView} style={screen.actionFlex} />
-        <PrimaryButton label="Advance" onPress={onAdvance} tone="dark" disabled={property.status === 'closed'} style={screen.actionFlex} />
-        <PrimaryButton label="Close" onPress={onClose} tone="danger" disabled={property.status === 'closed'} style={screen.actionFlex} />
-      </View>
+      <ActionMenu actions={[
+        canViewProperty(currentUser, property) && { label: 'View details', tone: 'primary', onPress: onView },
+        canEditProperty(currentUser, property) && { label: 'Advance', tone: 'dark', onPress: onAdvance, disabled: property.status === 'closed' },
+        canCloseDeal(currentUser, property) && { label: 'Close', tone: 'danger', onPress: onClose, disabled: property.status === 'closed' },
+      ]} />
     </Card>
   );
 }
