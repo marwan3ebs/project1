@@ -2,46 +2,66 @@
 
 Updated: 2026-05-04
 
-## Property and Deal Actions
+## Property Actions
 
 - View details.
-- Advance workflow phase.
-- Move workflow phase back with a demo reason.
-- Add follow-up task.
-- Add negotiation meeting.
+- Edit through scoped local actions.
+- Add follow-up.
+- Schedule meeting.
+- Schedule initial/buyer preview.
+- Add negotiation note.
+- Add pricing note.
 - Add contract check task.
-- Renew agreement for 3 months.
+- Start marketing.
 - Upgrade open agreement to exclusive.
-- Mark marketing started.
-- Schedule buyer preview.
+- Renew agreement for 3 months.
+- Mark agreement expired.
+- Advance phase.
+- Move back phase with reason.
+- Reassign property.
+- Transfer agent/team ownership from Team screen.
 - Close deal.
-- Reopen property.
+- Reopen deal.
 - Mark commission received.
-- Duplicate property.
 - Archive property.
+- Delete property, manager/admin only.
 
-## Client and Agreement Actions
+## Client Actions
 
-- Agreement code generation remains automatic on new properties.
-- Renewal recalculates agreement dates.
-- Agreement type can be upgraded to exclusive.
-- Follow-up, meeting, and preview actions create task records linked to the property.
+- Add client through property creation.
+- Add client note.
+- Log call.
+- Schedule follow-up.
+
+## Agreement Actions
+
+- Create agreement through Add Agreement.
+- Renew agreement.
+- Change open to exclusive.
+- Mark expired.
+- Request approval via `requiresApproval`.
+- Manager/admin approve/override in Property Detail.
 
 ## Task Actions
 
 - Add task.
-- Mark task done.
+- Complete task.
 - Reopen task.
-- Filtered visibility by role.
+- Change priority.
+- Set due date.
+- Reassign task from Team screen.
 
-## Report Actions
+## Action Guarantees
 
-- Generate biweekly report summary.
-- Report data is scoped by current role:
-  - Manager: company.
-  - Team Leader: team.
-  - Agent: personal.
+Every important action:
+
+- Checks RBAC in `MainNavigator` or service-level ownership helpers.
+- Updates local state.
+- Persists through AsyncStorage.
+- Logs success or denied attempts into `auditLog`.
 
 ## Persistence
 
-All actions update local state and persist through AsyncStorage under the v3 demo storage key.
+Storage key: `top-agents-collaboration:v4`.
+
+Legacy v3 demo data is migrated through `normalizeCrmData`.

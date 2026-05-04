@@ -12,7 +12,7 @@ import {
   SectionHeader,
   StatusBadge,
 } from '../components/index.js';
-import { canCloseDeal, canEditProperty } from '../auth/index.js';
+import { canCloseDeal, canDeleteProperty, canEditProperty, isManagerRole } from '../auth/index.js';
 import { PROPERTY_TYPES, UNIT_SOURCES } from '../constants/index.js';
 import { getAgreementStatus, getPhase, getPhaseProgress } from '../services/crmService.js';
 import { calculateCommission, formatMoney } from '../utils/commissionUtils.js';
@@ -35,6 +35,7 @@ export function PropertyDetailScreen({ data, helpers, actions, navigate, route, 
   const expiry = getAgreementStatus(property);
   const commission = calculateCommission(property);
   const relatedTasks = data.tasks.filter((task) => task.relatedPropertyId === property.id);
+  const relatedAgreement = (data.agreements || []).find((agreement) => agreement.propertyId === property.id);
 
   return (
     <View>
@@ -98,6 +99,23 @@ export function PropertyDetailScreen({ data, helpers, actions, navigate, route, 
         </View>
       </Card>
 
+      <SectionHeader title="Agreement approval" subtitle="Manager/admin approval and override controls" />
+      <Card>
+        <View style={screen.detailGrid}>
+          <Info label="Agreement" value={relatedAgreement?.agreementCode || property.agreementCode} />
+          <Info label="Type" value={relatedAgreement?.agreementType || property.agreementType} />
+          <Info label="Needs approval" value={relatedAgreement?.requiresApproval ? 'Yes' : 'No'} />
+          <Info label="Approved by" value={relatedAgreement?.approvedBy || 'Not approved'} />
+        </View>
+        <ActionMenu actions={[
+          relatedAgreement?.requiresApproval && isManagerRole(currentUser?.role) && {
+            label: 'Approve agreement',
+            tone: 'primary',
+            onPress: () => actions.approveAgreement(relatedAgreement.id),
+          },
+        ]} />
+      </Card>
+
       <SectionHeader title="Related follow-ups" />
       {relatedTasks.length === 0 ? <EmptyState title="No related tasks" body="No follow-up is linked to this property." /> : null}
       {relatedTasks.map((task) => (
@@ -113,6 +131,15 @@ export function PropertyDetailScreen({ data, helpers, actions, navigate, route, 
         </Card>
       ))}
 
+      <SectionHeader title="Client actions" subtitle="Calls, notes, and follow-up scheduling" />
+      <Card>
+        <ActionMenu actions={[
+          canEditProperty(currentUser, property) && { label: 'Add client note', onPress: () => actions.propertyAction(property.id, 'client_note') },
+          canEditProperty(currentUser, property) && { label: 'Log call', onPress: () => actions.propertyAction(property.id, 'log_call') },
+          canEditProperty(currentUser, property) && { label: 'Schedule follow-up', onPress: () => actions.propertyAction(property.id, 'follow_up') },
+        ]} />
+      </Card>
+
       <SectionHeader title="Management actions" subtitle="Local demo actions persisted with AsyncStorage" />
       <Card>
         <ActionMenu actions={[
@@ -120,8 +147,12 @@ export function PropertyDetailScreen({ data, helpers, actions, navigate, route, 
           canEditProperty(currentUser, property) && { label: 'Move back', onPress: () => actions.propertyAction(property.id, 'move_back') },
           canEditProperty(currentUser, property) && { label: 'Follow-up', onPress: () => actions.propertyAction(property.id, 'follow_up') },
           canEditProperty(currentUser, property) && { label: 'Meeting', onPress: () => actions.propertyAction(property.id, 'meeting') },
+          canEditProperty(currentUser, property) && { label: 'Initial preview', onPress: () => actions.propertyAction(property.id, 'buyer_preview') },
+          canEditProperty(currentUser, property) && { label: 'Pricing note', onPress: () => actions.propertyAction(property.id, 'pricing_note') },
+          canEditProperty(currentUser, property) && { label: 'Negotiation note', onPress: () => actions.propertyAction(property.id, 'negotiation_note') },
           canEditProperty(currentUser, property) && { label: 'Contract check', onPress: () => actions.propertyAction(property.id, 'contract_check') },
           canEditProperty(currentUser, property) && { label: 'Renew 3 months', onPress: () => actions.propertyAction(property.id, 'renew_agreement') },
+          canEditProperty(currentUser, property) && { label: 'Mark expired', onPress: () => actions.propertyAction(property.id, 'mark_expired') },
           canEditProperty(currentUser, property) && property.agreementType !== 'exclusive' && { label: 'Make exclusive', onPress: () => actions.propertyAction(property.id, 'upgrade_exclusive') },
           canEditProperty(currentUser, property) && { label: 'Marketing started', onPress: () => actions.propertyAction(property.id, 'marketing_started') },
           canEditProperty(currentUser, property) && { label: 'Buyer preview', onPress: () => actions.propertyAction(property.id, 'buyer_preview') },
@@ -130,6 +161,7 @@ export function PropertyDetailScreen({ data, helpers, actions, navigate, route, 
           canEditProperty(currentUser, property) && property.status !== 'active' && { label: 'Reopen', onPress: () => actions.propertyAction(property.id, 'reopen') },
           canEditProperty(currentUser, property) && { label: 'Duplicate', onPress: () => actions.propertyAction(property.id, 'duplicate') },
           canEditProperty(currentUser, property) && { label: 'Archive', tone: 'danger', onPress: () => actions.propertyAction(property.id, 'archive') },
+          canDeleteProperty(currentUser, property) && { label: 'Delete', tone: 'danger', onPress: () => actions.propertyAction(property.id, 'delete_property') },
         ]} />
       </Card>
     </View>
