@@ -62,3 +62,18 @@ This file records audit and organization steps so future work can reuse context 
 - Checked a narrow mobile viewport at `390x844`.
 - Observed no console errors or warnings during tab navigation.
 - Stopped the Expo web preview process and removed temporary validation logs.
+
+## 2026-05-04
+
+### Step 9 - Full CRM upgrade branch
+- Started from clean `dev`.
+- Created `feature/full-crm-upgrade`.
+- Refactored `App.js` into a clean shell that renders `src/navigation/MainNavigator.js`.
+- Added screen files for Home, Inventory, Property Detail, Add Property, Schedule, Reports, Team, and Settings.
+- Split reusable UI into focused components including cards, stat cards, badges, inputs, search, filters, buttons, progress bars, header, and tabs.
+- Upgraded the CRM data model to include agent roles, team IDs, property/customer/agreement fields, phase history, deal/commission records, tasks, timestamps, and statuses.
+- Added services for AsyncStorage persistence and CRM actions.
+- Added utilities for dates, commissions, filters, reports, and validation.
+- Added 3-month agreement end-date calculation, expiry status bands, phase advancement, phase history, closing, commission calculations, report generation, inventory search/filtering, and reset/seed demo behavior.
+- Validated Expo web export after each stable milestone.
+- Browser validation found reset needed web-specific behavior; updated reset so web preview resets directly while native Expo can keep a confirmation alert.

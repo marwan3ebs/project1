@@ -10,13 +10,13 @@
 
 ## Phase 1 - Demo Stabilization
 
-- Split `App.js` into screen files.
-- Add navigation library.
-- Add role-based demo switch or login stub.
-- Add compact inventory list and detail screen.
-- Improve agreement form validation.
-- Add search and sort.
-- Add report export prototype.
+- Completed on `feature/full-crm-upgrade`: split `App.js` into navigator, screens, services, utilities, and components.
+- Completed: property detail screen.
+- Completed: add property/agreement form with validation.
+- Completed: search/filter inventory.
+- Completed: report export-ready text.
+- Remaining: add role-based demo switch or login stub.
+- Remaining: replace custom navigation with React Navigation or Expo Router if the project will keep growing.
 
 ## Phase 2 - CRM Quality
 
@@ -27,6 +27,8 @@
 - Add calendar view.
 - Add client profiles and follow-up history.
 - Add activity timeline.
+- Add FlatList virtualization for inventory and task lists.
+- Add native date pickers and better phone/number formatting.
 
 ## Phase 3 - Backend and Production Readiness
 

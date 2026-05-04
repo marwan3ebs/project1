@@ -2,7 +2,7 @@
 
 ## Summary
 
-The app is usable as a demo CRM prototype. It has real estate-specific content, useful dashboard metrics, agreement reminders, deal phases, schedules, and team summaries. The experience still feels more like a dense prototype than a polished mobile CRM because navigation, role separation, forms, filters, states, and visual hierarchy are basic.
+The app has been upgraded from a dense prototype into a more presentable CRM demo. It now has a clearer dashboard, searchable inventory, property details, add agreement workflow, schedule, reports, team scorecards, and settings/reset. It still needs production polish, but the core demo flow is much stronger.
 
 ## What Works Well
 
@@ -19,11 +19,15 @@ The app is usable as a demo CRM prototype. It has real estate-specific content, 
 | Priority | Area | Issue | Recommendation |
 | --- | --- | --- | --- |
 | High | Navigation flow | Navigation is a custom tab state in `App.js`, not a scalable navigation system. There is no detail screen, edit screen, or predictable back behavior. | Move to React Navigation or Expo Router before adding major features. Add list, detail, create, and edit routes. |
+| Improved | Navigation flow | `App.js` is now a shell and `MainNavigator` supports tabs plus detail/add screens. | React Navigation or Expo Router is still recommended before production. |
 | High | Role experience | Manager, team leader, and agent views are mixed into one app shell without login or role filtering. | Add role-based dashboards and route guards after authentication is introduced. |
 | High | Inventory screen | Property cards are very dense and repeated in full, making scanning hard on mobile. | Add a compact inventory list with status, price, location, agent, expiry, and phase, then open a detail screen. |
+| Improved | Inventory screen | Search, filters, CRM badges, expiry status, and detail navigation were added. | Next step is a true virtualized compact list for larger data. |
 | High | Forms | Add agreement and schedule forms use plain text inputs for dates, numbers, and customer details with minimal validation. | Add date pickers, required markers, inline errors, numeric formatting, phone validation, and cancel/unsaved-change handling. |
+| Improved | Forms | Add property has required-field validation and grouped sections. | Date pickers and stronger schema validation remain. |
 | High | Agreement tracking | Agreement reminders are shown, but there is no dedicated agreement detail view, renewal flow, or expiry action. | Add an Agreement screen with filters for expired, ending soon, exclusive/open/rent, and renewal actions. |
 | High | Reports | The biweekly report is readable but not exportable and not structured like a manager deliverable. | Add report filters, report preview, PDF/Excel export, and printable summary sections. |
+| Improved | Reports | Added report cards, agent rows, team totals, phase distribution, and export-ready text. | PDF/Excel export remains future work. |
 | Medium | Dashboard clarity | Manager dashboard shows useful metrics, but lacks visual hierarchy for urgent work versus regular tasks. | Introduce an alert strip, prioritized task queue, and trend summaries. |
 | Medium | Team leader dashboard | Agent scorecards are useful but lack leaderboard ranking, target progress context, and drill-down. | Add ranked performance cards, target progress, closed commission, and agent detail screens. |
 | Medium | Scheduling | Schedule is a list only; no calendar or day grouping. | Add day/week grouping, calendar view, overdue group, and quick task completion. |
@@ -42,7 +46,7 @@ The app is usable as a demo CRM prototype. It has real estate-specific content, 
 - Login and role selection.
 - Agent dashboard.
 - Manager/admin dashboard.
-- Property detail.
+- Property detail. Added in demo branch.
 - Agreement detail and renewal.
 - Client profile.
 - Deal pipeline board.
@@ -68,4 +72,4 @@ Use a professional, operations-first mobile CRM style:
 
 ## Prototype vs Real CRM Assessment
 
-The app already demonstrates the right CRM domain concepts, but it still behaves like a prototype. The biggest shift needed is separating browsing from detail work: lists should be compact, details should have their own screens, and create/edit forms should be validated workflows rather than long inline panels.
+The app now demonstrates real CRM flows more clearly: dashboard, inventory, detail, add, workflow movement, closing, reports, team leader tracking, and reset. It remains a demo because authentication, backend validation, true exports, push notifications, audit logs, and production navigation are still pending.
