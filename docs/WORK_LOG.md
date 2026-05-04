@@ -77,3 +77,18 @@ This file records audit and organization steps so future work can reuse context 
 - Added 3-month agreement end-date calculation, expiry status bands, phase advancement, phase history, closing, commission calculations, report generation, inventory search/filtering, and reset/seed demo behavior.
 - Validated Expo web export after each stable milestone.
 - Browser validation found reset needed web-specific behavior; updated reset so web preview resets directly while native Expo can keep a confirmation alert.
+
+### Step 10 - Final validation
+- Ran `npm install`; dependencies were already up to date. npm still reports 11 moderate transitive vulnerabilities from the Expo dependency tree.
+- Ran controlled `npm start -- --localhost --port 8099`; Metro started and returned HTTP `200`.
+- Ran controlled `npm run web -- --localhost --port 8099`; web preview started and bundled successfully.
+- Ran `npx expo export --platform web --output-dir "$env:TEMP\crmremax-final-export"` successfully.
+- Opened web preview in Playwright.
+- Confirmed Home, Inventory, Schedule, Reports, Team, Settings, Property Detail, and Add Agreement flows are clickable.
+- Tested adding a property; inventory count increased from 5 to 6.
+- Reloaded the app and confirmed the added property persisted through AsyncStorage.
+- Tested advancing a phase and closing a deal from Property Detail.
+- Tested Reports `Generate Biweekly Report`; generated timestamp appeared.
+- Tested Settings reset; inventory returned to 5 records and the validation property disappeared.
+- Checked a `390x844` mobile viewport.
+- Browser console had no errors. React Native Web produced one known development warning about deprecated `props.pointerEvents`.

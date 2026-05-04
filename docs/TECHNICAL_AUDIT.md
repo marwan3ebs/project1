@@ -21,6 +21,8 @@ Additional validation:
 - Expo start was validated on a local Metro port and returned HTTP `200`.
 - Expo web preview was opened in Playwright; Home, Inventory, Schedule, Reports, and Team rendered without console errors or warnings.
 - A `390x844` mobile viewport was checked for the Home screen.
+- On `feature/full-crm-upgrade`, final validation also covered Add Agreement, Property Detail, phase advancement, closing a deal, report generation, reset demo data, and AsyncStorage persistence after reload.
+- Browser console had no runtime errors. React Native Web emitted a known development warning for deprecated `props.pointerEvents`.
 
 ## Architecture
 
