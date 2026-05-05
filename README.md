@@ -1,18 +1,22 @@
 # Top Agents Collaboration
 
-React Native / Expo mobile CRM for RE/MAX Top Agents. The app supports the university project goal of managing real estate inventory, resale purchase and rent workflows, agreement tracking, agent scheduling, biweekly manager reports, and team leader performance views.
+React Native / Expo CRM demo for RE/MAX Top Agents. The app manages real estate inventory, seller and rent agreements, resale workflow phases, agent scheduling, biweekly reporting, role-based dashboards, team performance, and local demo persistence.
 
-## Features
+## Current Features
 
-- Manager dashboard with active inventory, signed agreements, closed deals, and potential commission.
-- Inventory tracking for primary and resale units.
-- Agreement records with unique codes, agreement type, source, start date, end date, customer details, and agent ownership.
-- Resale deal pipeline with 10 phases from bringing the unit to closing and commission collection.
-- Seller agreement expiry reminders based on a 3-month agreement window.
-- Agent scheduling for meetings, previews, follow-ups, pricing, contract checks, and signing appointments.
-- Biweekly report screen for signed agreements, closed deals, commission, and phase counts.
-- Team leader view with team inventory, closed deals, target progress, and agent scorecards.
-- Local demo persistence using AsyncStorage.
+- Professional manager dashboard with active inventory, signed agreements, closed deals, potential commission, expiring agreements, and today's tasks.
+- Professional demo login using local AsyncStorage session state. The old free role switcher is removed from the main CRM.
+- Upgraded inventory with search, team/agent/location/status filters, sort controls, compact desktop table, action menus, real estate fields, agreement expiry status, commission estimates, phase progress, and manager-only delete.
+- Property detail screen with property overview, media/document placeholders, client details, agreement information, deal pipeline, financials, tasks, notes/history, ownership history, and management actions.
+- Add property/agreement form with required-field validation, generated agreement code, district/compound/layout fields, 3-month agreement end-date default, commission fields, and AsyncStorage save.
+- Schedule screen for meetings, previews, follow-ups, pricing, contract checks, signing, agreement expiry tasks, today/upcoming/overdue/completed sections, and quick task actions.
+- Analytics report screen with scoped role filters, executive section navigation, compact KPI cards, charts, ranked lists, risk alerts, recommendations, and export-ready report text.
+- Ownership/team management console with section tabs, hierarchy, add/edit/deactivate/delete agent, transfer agent, reassign property/task, audit log, and ownership history.
+- Settings/demo screen for reset, seeding, app info, signed-in access explanation, and demo credentials.
+- Local persistence with AsyncStorage and safe fallback to seed data if stored data is corrupted.
+- Responsive desktop CRM layout with sidebar navigation, max-width content, compact tables, and smaller desktop action buttons.
+- Real RBAC helper layer for properties, clients, agreements, deals, tasks, reports, commissions, settings, users, transfers, and reassignment.
+- Advanced local CRM actions including renewal, exclusivity upgrade, notes, logged calls, task creation, marketing start, buyer preview, manager approval, duplicate, archive, delete, reopen, and commission received.
 
 ## Tech Stack
 
@@ -31,26 +35,31 @@ npm install
 
 ## Running With Expo
 
-Start the Expo development server:
-
 ```bash
 npm start
 ```
 
-Use Expo Go on a phone by scanning the QR code from the terminal or Expo DevTools.
-
-Run the web preview:
+Use Expo Go on a phone by scanning the QR code. For web preview:
 
 ```bash
 npm run web
 ```
 
-Platform shortcuts:
+Useful validation command:
 
 ```bash
-npm run android
-npm run ios
+npx expo export --platform web
 ```
+
+## Demo Login Accounts
+
+| Role | Email | Password | Scope |
+| --- | --- | --- | --- |
+| Manager/Admin | `manager@remax-topagents.com` | `manager123` | Company-wide access |
+| Team Leader | `leader.east@remax-topagents.com` | `leader123` | East Cairo team only |
+| Agent | `sara.agent@remax-topagents.com` | `agent123` | Own records only |
+
+Authentication is local demo auth stored in AsyncStorage. It is not backend authentication yet.
 
 ## Folder Structure
 
@@ -62,82 +71,77 @@ npm run ios
 |-- package.json
 |-- assets/
 |-- docs/
-|   |-- PROJECT_OVERVIEW.md
-|   |-- UI_UX_AUDIT.md
-|   |-- TECHNICAL_AUDIT.md
-|   |-- IMPROVEMENT_PLAN.md
-|   |-- BRANCHING_STRATEGY.md
-|   |-- ROADMAP.md
-|   `-- PROJECT_AUDIT_REPORT.md
 `-- src/
     |-- components/
+    |   `-- charts/
     |-- constants/
     |-- data/
-    |-- utils/
+    |-- auth/
+    |-- theme/
     |-- navigation/
     |-- screens/
-    |-- features/
     |-- services/
+    |-- utils/
+    |-- features/
     |-- hooks/
     |-- types/
     `-- assets/
 ```
 
-`App.js` currently contains the app shell and screen components. The next refactor should move screens and feature logic into the documented `src/` folders.
-
-## Screens and Modules
+## Main Screens
 
 | Screen | Purpose |
 | --- | --- |
-| Home | Manager dashboard, reminders, today actions, pipeline summary. |
-| Inventory | Add agreements, filter inventory, advance phases, close deals. |
-| Schedule | Add meetings/follow-ups and track agreement deadlines. |
-| Reports | Biweekly manager report and agent production summary. |
-| Team | Team leader performance, targets, inventory, and commission. |
+| Home | Manager CRM dashboard, urgent reminders, tasks, pipeline summary. |
+| Inventory | Search/filter inventory, view details, advance phase, close deals. |
+| Property Details | Full CRM record with agreement, customer, timeline, tasks, commission. |
+| Add Agreement | Create property/agreement records with validation. |
+| Schedule | Add and manage CRM follow-ups and meetings. |
+| Reports | Scoped analytics, charts, ranked lists, biweekly report text. |
+| Team | Team performance, ownership management, transfers, reassignment, audit history. |
+| Settings | Reset/seed demo data, view signed-in access, and inspect demo credentials. |
 
-## Branching Strategy
+## Demo Workflow
 
-| Branch | Purpose |
-| --- | --- |
-| `main` | Stable working branch. |
-| `dev` | Integration branch for team development. |
-| `AbouSeada` | Developer branch from `dev`. |
-| `AhmedHassan` | Developer branch from `dev`. |
-| `Maro` | Developer branch from `dev`. |
+1. Sign in as manager with `manager@remax-topagents.com` / `manager123`.
+2. Start on Home and explain manager summary cards.
+2. Open Inventory and search/filter agreements.
+3. Open a Property Detail screen and show customer, agreement, timeline, tasks, and commission.
+4. Advance a phase and explain the resale workflow.
+5. Close a deal and show confirmed commission.
+6. Open Reports and generate the biweekly summary.
+7. Open Team to show team leader tracking.
+8. Logout, then sign in as Team Leader or Agent to show scoped data.
+9. Open Settings and reset demo data.
 
-Expected flow:
+## Branch Workflow
+
+Stable flow:
 
 ```text
-developer branches -> dev -> main
+feature branches -> dev -> main
 ```
 
-See `docs/BRANCHING_STRATEGY.md` for the full workflow.
+Current upgrade branch:
 
-## Team Workflow
+```text
+feature/maro-rbac-ownership-analytics
+```
 
-1. Pull the latest `dev`.
-2. Work on your assigned developer branch.
-3. Commit focused changes with clear messages.
-4. Push your branch.
-5. Merge into `dev` after review/testing.
-6. Merge `dev` into `main` only when the app is stable.
-
-## Roadmap
-
-1. Split `App.js` into navigation, screens, and feature modules.
-2. Add role-based dashboards for Agent, Team Leader, and Manager.
-3. Add compact inventory list, property detail, agreement detail, and edit screens.
-4. Add search, filter, sort, date pickers, and stronger validation.
-5. Add report export, calendar view, notifications, and activity timeline.
-6. Add TypeScript, service layer, backend/API plan, and database schema.
+Do not merge this feature branch into `dev` until validation is complete and reviewed.
 
 ## Documentation
 
-- `docs/PROJECT_OVERVIEW.md`
-- `docs/UI_UX_AUDIT.md`
+- `docs/CRM_DATA_MODEL.md`
+- `docs/DEMO_SCRIPT.md`
+- `docs/RBAC_MODEL.md`
+- `docs/TEAM_MANAGEMENT.md`
+- `docs/ANALYTICS_REPORTS.md`
+- `docs/UI_RESPONSIVE_REDESIGN.md`
+- `docs/UI_PROFESSIONALIZATION_AUDIT.md`
+- `docs/CRM_ACTIONS.md`
+- `docs/NEXT_BACKEND_PLAN.md`
 - `docs/TECHNICAL_AUDIT.md`
-- `docs/IMPROVEMENT_PLAN.md`
-- `docs/BRANCHING_STRATEGY.md`
+- `docs/UI_UX_AUDIT.md`
 - `docs/ROADMAP.md`
-- `docs/PROJECT_AUDIT_REPORT.md`
 - `docs/WORK_LOG.md`

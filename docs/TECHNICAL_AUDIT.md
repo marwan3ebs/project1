@@ -2,7 +2,7 @@
 
 ## Summary
 
-The project is a small Expo React Native app that can be developed quickly, but most architecture is still centralized in `App.js`. It is appropriate for a university demo prototype. It needs navigation, state boundaries, typed models, service layers, validation, and backend-ready data contracts before it should grow into a full CRM.
+The project is now a cleaner Expo React Native CRM demo with separated navigation, screens, reusable components, services, utilities, upgraded seed data, and stronger CRM business logic. It is still a local/demo app, but it is no longer centralized in one large `App.js`.
 
 ## Framework, Dependencies, and Scripts
 
@@ -11,7 +11,7 @@ The project is a small Expo React Native app that can be developed quickly, but 
 | Framework | Expo SDK 54 with React Native 0.81 and React 19. |
 | Entry | `index.js` registers `App.js` with Expo. |
 | Scripts | `npm start`, `npm run android`, `npm run ios`, `npm run web`. |
-| Persistence | AsyncStorage under key `top-agents-collaboration:v1`. |
+| Persistence | AsyncStorage under key `top-agents-collaboration:v2`. |
 | Web | `react-native-web` is installed and `npm run web` is configured. |
 | Install | `npm install` completed successfully. |
 
@@ -21,45 +21,45 @@ Additional validation:
 - Expo start was validated on a local Metro port and returned HTTP `200`.
 - Expo web preview was opened in Playwright; Home, Inventory, Schedule, Reports, and Team rendered without console errors or warnings.
 - A `390x844` mobile viewport was checked for the Home screen.
+- On `feature/full-crm-upgrade`, final validation also covered Add Agreement, Property Detail, phase advancement, closing a deal, report generation, reset demo data, and AsyncStorage persistence after reload.
+- Browser console had no runtime errors. React Native Web emitted a known development warning for deprecated `props.pointerEvents`.
 
 ## Architecture
 
 | Area | Current state | Risk |
 | --- | --- | --- |
-| Screens | All screen components live in `App.js`. | High as feature count grows. |
-| Navigation | Manual tab state, no route stack. | High for detail/edit workflows. |
-| State | Central `useState` data object and local mutations. | Medium; simple but hard to test and sync. |
+| Screens | Screen files live under `src/screens/`. | Lower; still JavaScript-only. |
+| Navigation | Custom Expo-native tab/detail state in `MainNavigator`. | Medium; adequate for demo, but React Navigation is better later. |
+| State | Central data state in navigator with CRM service actions. | Medium; enough for demo, replace with store/API later. |
 | Persistence | AsyncStorage only. | High for multi-user CRM data. |
 | Data models | Plain JavaScript objects. | Medium; missing compile-time safety. |
-| Services | No service layer. | High for future API integration. |
-| Validation | Minimal alert-based required checks. | High for data quality. |
-| Error handling | Storage write errors are ignored. | Medium. |
+| Services | `storageService` and `crmService` now exist. | Medium; API service still pending. |
+| Validation | Add property form has required-field validation. | Medium; schema validation still pending. |
+| Error handling | Storage corruption falls back to seed data and shows a user notice. | Medium. |
 | Testing | No test framework or validation scripts. | Medium. |
 
 ## Code Quality
 
-Strengths:
+Current strengths:
 
-- Code is readable and uses simple React patterns.
-- Domain constants and utility functions are separated from UI.
-- Seed data is separated from the main app after the organization pass.
-- Utility functions for dates, money, commission, phase lookup, and alerts keep some logic reusable.
+- `App.js` is a small shell.
+- Screens, components, services, data, constants, and utilities are separated.
+- CRM business actions are centralized in `crmService`.
+- AsyncStorage load/save/reset behavior is centralized in `storageService`.
+- Report, date, commission, filter, and validation utilities are reusable.
+- Demo data now includes properties, agents, teams, tasks, deals, roles, phase history, and timestamps.
 
-Issues:
+Remaining issues:
 
-- `App.js` is about 1,400 lines and mixes app shell, screens, actions, forms, and styles.
-- Property records combine property, client, agreement, deal, and commission concerns.
-- There are no dedicated feature modules yet.
 - There is no TypeScript or schema validation.
 - No lint, format, test, or typecheck scripts exist.
-- Forms accept invalid dates, invalid numbers, and arbitrary client side values.
-- Agreement code generation is based on array length, so duplicate codes are possible after deletion or concurrent creation.
-- AsyncStorage parse failures are not handled explicitly.
-- Business rules are client-only and can be bypassed if a backend is added later without validation.
+- Form date fields are still plain text and should become date pickers.
+- Business rules are client-only and should move to backend validation later.
+- Lists still use `ScrollView`; large real datasets should use `FlatList`.
 
 ## Data Handling
 
-Current data is created by `createSeedData()` and then persisted to AsyncStorage. This makes the demo work offline, but there is no sync strategy, user identity, permissions model, audit trail, conflict handling, or backup/export.
+Current data is created by `createSeedData()` and then persisted to AsyncStorage. The local model now includes `agents`, `teams`, `properties`, `tasks`, and `deals`. This makes the demo more realistic, but there is still no sync strategy, authenticated user identity, permissions model, audit trail, conflict handling, or backup/export.
 
 Recommended future split:
 
@@ -119,3 +119,14 @@ The suggested `npm audit fix --force` would install `expo@49.0.23`, which is a b
 6. Replace `ScrollView` lists with `FlatList` where records can grow.
 7. Add linting, formatting, and a basic test setup.
 8. Add role-based authentication before real CRM data is used.
+
+## 2026-05-04 Update - Responsive RBAC Branch
+
+- Added a dedicated theme layer under `src/theme/`.
+- Added `useResponsive` for mobile/tablet/desktop branching.
+- Added `src/auth/` with role constants, permission matrix, demo users, and access-control helpers.
+- Navigation now filters data by current user scope before rendering screens.
+- CRM write actions still update the full local data set, but permission checks run before mutation.
+- Seed data now includes users and richer team hierarchy fields.
+- Storage key moved to v3 to avoid stale v2 shape issues.
+- Remaining technical risk: this is still a local demo without real auth, backend enforcement, audit logs, or server validation.

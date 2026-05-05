@@ -26,6 +26,7 @@ npm-debug.*
 yarn-debug.*
 yarn-error.*
 expo-*-validation*.log
+claude-ai-share-*.pdf
 
 # macOS
 .DS_Store
@@ -40,3 +41,7 @@ expo-*-validation*.log
 # generated native folders
 /ios
 /android
+
+claude-ai-share-*.pdf
+docs/claude_reference_pages/
+validation-screenshots/
