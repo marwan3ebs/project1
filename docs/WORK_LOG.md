@@ -135,3 +135,26 @@ This file records audit and organization steps so future work can reuse context 
 - Captured Edge headless screenshots for `1440x900`, `768x1024`, and `390x844`.
 - Mobile screenshot initially exposed metric-card horizontal overflow; fixed `StatCard` to stack cards on mobile while preserving compact desktop rows.
 - Validation screenshots are ignored under `validation-screenshots/`.
+
+## 2026-05-05
+
+### Step 15 - CRM professionalization and demo login
+- Continued on `feature/maro-rbac-ownership-analytics`; source work remains based on AhmedHassan and the pushed RBAC/ownership/analytics branch.
+- Replaced the visible demo role switcher with local demo login accounts and AsyncStorage session restore/logout.
+- Added manager, team leader, and agent credentials:
+  - `manager@remax-topagents.com` / `manager123`
+  - `leader.east@remax-topagents.com` / `leader123`
+  - `sara.agent@remax-topagents.com` / `agent123`
+- Refined the design system toward navy/charcoal, RE/MAX red accents, compact white cards, subdued badges, smaller controls, and tighter desktop spacing.
+- Upgraded sidebar/header to show logged-in user, role, team, and logout.
+- Expanded the property model and sample data with district, compound, bedrooms, bathrooms, floor, view, finishing, media/document counts, marketing status, last activity, and next follow-up.
+- Upgraded Inventory with professional table columns, more filters, sort controls, action menus, real estate cards, and stronger property metadata.
+- Upgraded Property Detail with media/document placeholder, overview, agreement details, commission, tasks, ownership history, and management actions.
+- Refactored Reports into section navigation: overview, pipeline, commission, teams, agents, risk, sources, and export.
+- Refactored Team into console sections: overview, hierarchy, agents, transfers, reassignment, and audit log.
+- Refactored Schedule into Today, Upcoming, Overdue, and Completed task sections.
+- Added `docs/UI_PROFESSIONALIZATION_AUDIT.md`.
+- Validation: `npm.cmd install` reported dependencies up to date.
+- Validation: `npx.cmd expo export --platform web` passed after using `npx.cmd` because PowerShell blocks `npx.ps1` on this system.
+- Validation: `npm.cmd run web -- --localhost --port 8099` started Expo web and returned HTTP `200`.
+- Edge headless screenshots were attempted for desktop/tablet/mobile; this Windows profile reported Edge crashpad `Access is denied` and did not write fresh screenshot files, so the reliable validation signals for this pass are the web export and localhost HTTP check.

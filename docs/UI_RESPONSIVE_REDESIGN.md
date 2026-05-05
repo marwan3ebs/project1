@@ -1,6 +1,6 @@
 # UI Responsive Redesign
 
-Updated: 2026-05-04
+Updated: 2026-05-05
 
 ## Previous Desktop Problems
 
@@ -28,8 +28,16 @@ The attached UI/UX guidance was applied as a React Native compatible design syst
 - Smaller desktop buttons with mobile-safe touch targets.
 - Clear role/scope banner.
 
+## 2026-05-05 Professionalization
+
+- Sidebar and header now show logged-in user identity and logout instead of visible role switching.
+- Repeated large scope banners were removed from the main content area.
+- Reports, Team, and Schedule now use section tabs to reduce long-scroll fatigue.
+- Inventory desktop view uses denser table columns and compact action menus.
+- Cards, badges, buttons, and filters were tightened to better match a business CRM.
+
 ## Remaining Work
 
 - Add a true detail drawer on desktop.
 - Add keyboard navigation/focus polish for web.
-- Add charts for reports once a charting dependency is selected.
+- Add a true desktop popover/dropdown layer for action menus if the app adopts a navigation/component library.

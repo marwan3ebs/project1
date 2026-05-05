@@ -17,8 +17,8 @@ export function FilterChip({ label, active, onPress }) {
 
 const styles = StyleSheet.create({
   chip: {
-    minHeight: 34,
-    borderRadius: 999,
+    minHeight: 32,
+    borderRadius: 7,
     borderWidth: 1,
     borderColor: '#cbd5e1',
     paddingHorizontal: 12,
@@ -26,13 +26,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
   },
   active: {
-    backgroundColor: COLORS.ink,
-    borderColor: COLORS.ink,
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   text: {
     color: COLORS.text,
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   activeText: {
     color: '#ffffff',

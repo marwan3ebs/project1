@@ -1,6 +1,6 @@
 # Analytics and Reports
 
-Updated: 2026-05-04
+Updated: 2026-05-05
 
 ## Utilities
 
@@ -42,18 +42,22 @@ Charts use React Native `View` components, so no web-only chart dependency is re
 
 ## Report Sections
 
-The Reports screen includes:
+The Reports screen now uses executive-style section navigation:
 
-- Executive Summary
-- Agreements & Inventory
-- Deal Pipeline
-- Commission Analysis
-- Team Performance
-- Agent Performance
-- Risk & Follow-up Alerts
-- Source Quality Analysis
-- Recommendations
-- Export-ready report text
+- Overview: executive KPIs, metric trends, open vs exclusive, primary vs resale.
+- Pipeline: phase distribution, rent vs purchase, bottleneck phase, conversion, stale work.
+- Commission: top commission agents and team ranking.
+- Teams: team ranking, inventory, closed deals, potential and confirmed commission.
+- Agents: agent leaderboard, target progress, agreements, closed deals, follow-ups, overdue tasks, commission.
+- Risk: expiring agreements, overdue follow-ups, bottleneck phase, open tasks.
+- Sources: lead/source volume, closed deals, conversion quality.
+- Export: recommendations and export-ready biweekly report text.
+
+## Professionalization Notes
+
+- KPI cards are intentionally compact for desktop.
+- Chart colors are restrained navy, charcoal, RE/MAX red, and status colors rather than random bright demo colors.
+- Section navigation keeps the reports page from becoming one overwhelming scroll while preserving the analytics model.
 
 ## Known Limitations
 

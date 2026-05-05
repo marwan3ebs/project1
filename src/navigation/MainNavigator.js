@@ -10,9 +10,8 @@ import {
   View,
 } from 'react-native';
 
-import { AppHeader, BottomTabs, RoleSwitcher, SidebarNav, UserScopeBanner } from '../components/index.js';
+import { AppHeader, BottomTabs, SidebarNav } from '../components/index.js';
 import {
-  DEFAULT_DEMO_USER_ID,
   PERMISSIONS,
   can,
   canCloseDeal,
@@ -24,6 +23,9 @@ import {
   filterDataByUserAccess,
   getTeamIds,
   isManagerRole,
+  login as authLogin,
+  logout as authLogout,
+  restoreSession,
 } from '../auth/index.js';
 import { colors, layout, spacing } from '../theme/index.js';
 import { TABS } from '../constants/index.js';
@@ -53,6 +55,7 @@ import { ScheduleScreen } from '../screens/ScheduleScreen.js';
 import { ReportsScreen } from '../screens/ReportsScreen.js';
 import { TeamScreen } from '../screens/TeamScreen.js';
 import { SettingsScreen } from '../screens/SettingsScreen.js';
+import { LoginScreen } from '../screens/LoginScreen.js';
 
 const routeTitles = {
   home: 'Manager Dashboard',
@@ -67,21 +70,25 @@ const routeTitles = {
 
 export function MainNavigator() {
   const [data, setData] = useState(() => createSeedData());
-  const [currentUserId, setCurrentUserId] = useState(DEFAULT_DEMO_USER_ID);
+  const [currentUserId, setCurrentUserId] = useState(null);
   const [hydrated, setHydrated] = useState(false);
   const [route, setRoute] = useState({ name: 'home' });
   const [notice, setNotice] = useState(null);
   const [storageError, setStorageError] = useState(null);
+  const [loginError, setLoginError] = useState(null);
 
   useEffect(() => {
     let mounted = true;
 
-    loadCrmData().then((result) => {
+    Promise.all([loadCrmData(), restoreSession()]).then(([result, session]) => {
       if (!mounted) {
         return;
       }
 
       setData(result.data);
+      if (session?.userId) {
+        setCurrentUserId(session.userId);
+      }
       setHydrated(true);
 
       if (result.error) {
@@ -115,7 +122,7 @@ export function MainNavigator() {
   }, [data]);
 
   const currentUser = useMemo(
-    () => (data.users || data.agents).find((user) => user.id === currentUserId) || (data.users || data.agents)[0],
+    () => (data.users || data.agents).find((user) => user.id === currentUserId) || null,
     [data, currentUserId],
   );
 
@@ -363,9 +370,11 @@ export function MainNavigator() {
       updateData((current) => reassignTaskOwnership(current, currentUser, taskId, targetAgentId, reason));
       setNotice('Task reassignment processed.');
     },
-    switchUser: (userId) => {
-      setCurrentUserId(userId);
-      navigate('home');
+    logout: async () => {
+      await authLogout();
+      setCurrentUserId(null);
+      setRoute({ name: 'home' });
+      setNotice(null);
     },
     resetDemo: async () => {
       if (!can(currentUser, PERMISSIONS.MANAGE_SETTINGS)) {
@@ -417,6 +426,34 @@ export function MainNavigator() {
 
   const tabName = TABS.some((tab) => tab.id === route.name) ? route.name : 'inventory';
 
+  async function handleLogin(email, password) {
+    const result = await authLogin(email, password, data.users || data.agents);
+    setLoginError(result.error);
+    if (result.user) {
+      setCurrentUserId(result.user.id);
+      setRoute({ name: 'home' });
+      setNotice(`Signed in as ${result.user.name}.`);
+    }
+  }
+
+  if (!hydrated) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.loadingWrap}>
+          <Text style={styles.loadingText}>Loading CRM workspace...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <LoginScreen onLogin={handleLogin} error={loginError} />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
@@ -425,14 +462,10 @@ export function MainNavigator() {
       >
         <View style={responsive.showSidebar ? styles.desktopShell : styles.mobileShell}>
         {responsive.showSidebar ? (
-          <SidebarNav activeTab={tabName} onChange={setTab} currentUser={currentUser} />
+          <SidebarNav activeTab={tabName} onChange={setTab} currentUser={currentUser} onLogout={actions.logout} />
         ) : null}
         <View style={styles.mainPane}>
-        <AppHeader routeLabel={routeTitles[route.name]} currentUser={currentUser} compact={responsive.isDesktop}>
-          {responsive.isDesktop ? (
-            <RoleSwitcher users={data.users || data.agents} currentUser={currentUser} onChange={actions.switchUser} />
-          ) : null}
-        </AppHeader>
+        <AppHeader routeLabel={routeTitles[route.name]} currentUser={currentUser} compact={responsive.isDesktop} onLogout={actions.logout} team={helpers.teamById[currentUser.teamId]} />
         {(notice || storageError) ? (
           <View style={styles.notice}>
             <Text style={styles.noticeText}>{notice || storageError}</Text>
@@ -446,7 +479,6 @@ export function MainNavigator() {
           ]}
           showsVerticalScrollIndicator={false}
         >
-          <UserScopeBanner user={currentUser} visibleCounts={{ properties: visibleData.properties.length }} />
           {route.name === 'home' ? <HomeScreen {...screenProps} /> : null}
           {route.name === 'inventory' ? <InventoryScreen {...screenProps} /> : null}
           {route.name === 'propertyDetail' ? <PropertyDetailScreen {...screenProps} /> : null}
@@ -501,5 +533,14 @@ const styles = StyleSheet.create({
   },
   mainPane: {
     flex: 1,
+  },
+  loadingWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    color: colors.muted,
+    fontWeight: '800',
   },
 });

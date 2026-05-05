@@ -16,6 +16,7 @@
 - Completed: search/filter inventory.
 - Completed: report export-ready text.
 - Completed on `feature/responsive-rbac-crm-actions`: add role-based demo switch and RBAC-scoped data visibility.
+- Completed on `feature/maro-rbac-ownership-analytics`: replace visible role switcher with local demo login and session restore/logout.
 - Remaining: replace custom navigation with React Navigation or Expo Router if the project will keep growing.
 
 ## Phase 2 - CRM Quality
@@ -29,6 +30,7 @@
 - Add fuller client profile and activity timeline screens.
 - Add FlatList virtualization for inventory and task lists.
 - Add native date pickers and better phone/number formatting.
+- Completed in local demo form: professionalize desktop CRM layout, inventory table, report sections, team console sections, and task board sections.
 
 ## Phase 3 - Backend and Production Readiness
 
@@ -37,7 +39,8 @@
 - Completed in local demo form: add role-based permissions.
 - Add notifications.
 - Add report generation service.
-- Add audit logs.
+- Completed in local demo form: add local audit logs and ownership history.
+- Replace local demo auth, AsyncStorage, and local audit logs with backend auth, database persistence, server-side RBAC, and immutable audit events.
 - Add tests and CI.
 - Add backup/export.
 

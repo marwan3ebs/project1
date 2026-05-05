@@ -19,13 +19,13 @@ const styles = StyleSheet.create({
   card: {
     flexGrow: 1,
     flexShrink: 1,
-    flexBasis: 160,
+    flexBasis: 150,
     minWidth: 146,
     maxWidth: '100%',
-    minHeight: 104,
+    minHeight: 92,
     borderRadius: 8,
     borderWidth: 1,
-    padding: 13,
+    padding: 12,
     justifyContent: 'space-between',
   },
   mobileCard: {
@@ -33,16 +33,16 @@ const styles = StyleSheet.create({
     minWidth: '100%',
   },
   teal: {
-    backgroundColor: '#ecfeff',
-    borderColor: '#99f6e4',
+    backgroundColor: '#ffffff',
+    borderColor: '#dbe4ef',
   },
   amber: {
-    backgroundColor: '#fff7ed',
-    borderColor: '#fed7aa',
+    backgroundColor: '#fffaf0',
+    borderColor: '#f7d38a',
   },
   rose: {
-    backgroundColor: '#fff1f2',
-    borderColor: '#fecdd3',
+    backgroundColor: '#fff5f5',
+    borderColor: '#f5b8bf',
   },
   slate: {
     backgroundColor: '#f8fafc',
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
   },
   value: {
     color: COLORS.ink,
-    fontSize: 25,
+    fontSize: 22,
     fontWeight: '900',
     marginTop: 8,
   },

@@ -27,8 +27,16 @@ function emptyForm(data) {
     customerName: '',
     customerPhone: '',
     customerType: 'seller',
+    title: '',
     location: '',
+    district: '',
+    compound: '',
     area: '',
+    bedrooms: '',
+    bathrooms: '',
+    floor: '',
+    view: '',
+    finishing: '',
     price: '',
     propertyType: 'apartment',
     transactionType: 'purchase',
@@ -121,7 +129,16 @@ export function AddPropertyScreen({ data, actions, navigate }) {
       <Card>
         <Text style={screen.title}>Property</Text>
         <SelectInput label="Property type" options={PROPERTY_TYPES} value={form.propertyType} onChange={(value) => update('propertyType', value)} />
+        <FormInput label="Property title" value={form.title} onChangeText={(value) => update('title', value)} />
         <FormInput label="Location" value={form.location} onChangeText={(value) => update('location', value)} error={errors.location} />
+        <View style={screen.actionRow}>
+          <View style={screen.actionFlex}>
+            <FormInput label="District" value={form.district} onChangeText={(value) => update('district', value)} />
+          </View>
+          <View style={screen.actionFlex}>
+            <FormInput label="Compound" value={form.compound} onChangeText={(value) => update('compound', value)} />
+          </View>
+        </View>
         <View style={screen.actionRow}>
           <View style={screen.actionFlex}>
             <FormInput label="Area sqm" value={form.area} onChangeText={(value) => update('area', value)} keyboardType="numeric" error={errors.area} />
@@ -130,6 +147,23 @@ export function AddPropertyScreen({ data, actions, navigate }) {
             <FormInput label={form.transactionType === 'rent' ? 'Monthly rent' : 'Price'} value={form.price} onChangeText={(value) => update('price', value)} keyboardType="numeric" error={errors.price} />
           </View>
         </View>
+        <View style={screen.actionRow}>
+          <View style={screen.actionFlex}>
+            <FormInput label="Bedrooms" value={form.bedrooms} onChangeText={(value) => update('bedrooms', value)} keyboardType="numeric" />
+          </View>
+          <View style={screen.actionFlex}>
+            <FormInput label="Bathrooms" value={form.bathrooms} onChangeText={(value) => update('bathrooms', value)} keyboardType="numeric" />
+          </View>
+        </View>
+        <View style={screen.actionRow}>
+          <View style={screen.actionFlex}>
+            <FormInput label="Floor" value={form.floor} onChangeText={(value) => update('floor', value)} />
+          </View>
+          <View style={screen.actionFlex}>
+            <FormInput label="Finishing" value={form.finishing} onChangeText={(value) => update('finishing', value)} />
+          </View>
+        </View>
+        <FormInput label="View" value={form.view} onChangeText={(value) => update('view', value)} />
         <FormInput label="Notes" value={form.notes} onChangeText={(value) => update('notes', value)} multiline />
       </Card>
 

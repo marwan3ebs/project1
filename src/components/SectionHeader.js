@@ -25,16 +25,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
-    marginTop: 12,
-    marginBottom: 10,
+    marginTop: 10,
+    marginBottom: 8,
   },
   copy: {
     flex: 1,
   },
   title: {
     color: COLORS.ink,
-    fontSize: 19,
-    fontWeight: '900',
+    fontSize: 18,
+    fontWeight: '800',
   },
   subtitle: {
     color: COLORS.muted,
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     minHeight: 36,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#bfd3d6',
+    borderColor: COLORS.border,
     paddingHorizontal: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -54,6 +54,6 @@ const styles = StyleSheet.create({
   actionText: {
     color: COLORS.primary,
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
   },
 });

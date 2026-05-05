@@ -36,6 +36,24 @@ export function HomeScreen({ data, helpers, reminders, actions, navigate }) {
     .filter((property) => property.status !== 'closed')
     .sort((a, b) => Number(b.currentPhase) - Number(a.currentPhase))
     .slice(0, 3);
+  const topAgents = data.agents
+    .filter((agent) => agent.role !== 'manager' && agent.role !== 'admin')
+    .map((agent) => {
+      const owned = data.properties.filter((property) => property.ownerAgentId === agent.id || property.agentId === agent.id);
+      const closed = owned.filter((property) => property.status === 'closed');
+      return {
+        agent,
+        inventory: owned.filter((property) => property.status !== 'closed').length,
+        closed: closed.length,
+        commission: closed.reduce((sum, property) => sum + calculateCommission(property).totalCommission, 0),
+      };
+    })
+    .sort((a, b) => b.commission - a.commission)
+    .slice(0, 4);
+  const recentActivity = data.properties
+    .slice()
+    .sort((a, b) => String(b.lastActivityAt || b.updatedAt).localeCompare(String(a.lastActivityAt || a.updatedAt)))
+    .slice(0, 4);
 
   return (
     <View>
@@ -110,6 +128,24 @@ export function HomeScreen({ data, helpers, reminders, actions, navigate }) {
         ))}
       </Card>
 
+      <SectionHeader title="Top agents" subtitle="Commission, inventory, and closing snapshot" />
+      {topAgents.map((row) => (
+        <Card key={row.agent.id}>
+          <View style={screen.rowBetween}>
+            <View>
+              <Text style={screen.title}>{row.agent.name}</Text>
+              <Text style={screen.meta}>{helpers.teamById[row.agent.teamId]?.name || row.agent.teamId}</Text>
+            </View>
+            <Text style={screen.title}>{formatMoney(row.commission)}</Text>
+          </View>
+          <View style={screen.detailGrid}>
+            <Info label="Inventory" value={row.inventory} />
+            <Info label="Closed" value={row.closed} />
+            <Info label="Target" value={row.agent.target || 0} />
+          </View>
+        </Card>
+      ))}
+
       <SectionHeader title="Highest priority deals" subtitle="Quick phase and closing controls" />
       {priorityDeals.map((property) => {
         const phase = getPhase(property.currentPhase);
@@ -117,8 +153,8 @@ export function HomeScreen({ data, helpers, reminders, actions, navigate }) {
           <Card key={property.id}>
             <View style={screen.rowBetween}>
               <View style={{ flex: 1 }}>
-                <Text style={screen.title}>{property.location}</Text>
-                <Text style={screen.meta}>{property.agreementCode} | {property.agentName}</Text>
+                <Text style={screen.title}>{property.title || property.location}</Text>
+                <Text style={screen.meta}>{property.agreementCode} | {property.agentName} | {property.compound || property.district}</Text>
               </View>
               <PhaseBadge phaseId={property.currentPhase} />
             </View>
@@ -137,6 +173,28 @@ export function HomeScreen({ data, helpers, reminders, actions, navigate }) {
           </Card>
         );
       })}
+
+      <SectionHeader title="Recent activity" subtitle="Listings updated most recently" />
+      {recentActivity.map((property) => (
+        <Card key={property.id}>
+          <View style={screen.rowBetween}>
+            <View style={{ flex: 1 }}>
+              <Text style={screen.title}>{property.title || property.location}</Text>
+              <Text style={screen.meta}>{formatDate(property.lastActivityAt || property.updatedAt)} | {property.agentName}</Text>
+            </View>
+            <StatusBadge label={property.marketingStatus || property.status} tone={property.status === 'closed' ? 'success' : 'primary'} />
+          </View>
+        </Card>
+      ))}
+    </View>
+  );
+}
+
+function Info({ label, value }) {
+  return (
+    <View style={screen.infoBlock}>
+      <Text style={screen.infoLabel}>{label}</Text>
+      <Text style={screen.infoValue}>{value}</Text>
     </View>
   );
 }

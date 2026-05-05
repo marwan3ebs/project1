@@ -5,20 +5,20 @@ export const COMPANY = {
 };
 
 export const COLORS = {
-  background: '#edf3f4',
+  background: '#f1f5f9',
   surface: '#ffffff',
   surfaceMuted: '#f8fafc',
-  ink: '#0f172a',
-  text: '#334155',
+  ink: '#0b1220',
+  text: '#27364a',
   muted: '#64748b',
-  border: '#dbe5e7',
-  primary: '#0f766e',
-  primaryDark: '#115e59',
-  danger: '#be123c',
-  warning: '#c2410c',
-  success: '#15803d',
-  info: '#2563eb',
-  brandRed: '#e11d48',
+  border: '#d8e0ea',
+  primary: '#17233a',
+  primaryDark: '#0b1220',
+  danger: '#b91c1c',
+  warning: '#b45309',
+  success: '#166534',
+  info: '#1d4ed8',
+  brandRed: '#c1121f',
 };
 
 export const TABS = [

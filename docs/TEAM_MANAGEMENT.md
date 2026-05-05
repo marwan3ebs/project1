@@ -1,6 +1,6 @@
 # Team Management
 
-Updated: 2026-05-04
+Updated: 2026-05-05
 
 ## Hierarchy
 
@@ -24,6 +24,10 @@ The local model stores:
 
 ## Agent Management
 
+- Team screen is organized into console tabs: Overview, Hierarchy, Agents, Transfers, Reassignment, and Audit Log.
+- Overview shows active inventory, closed deals, commission, active agents, overdue work, expiring agreements, team target, and inactive agents.
+- Hierarchy shows manager, team leaders, teams, and active/inactive agents.
+- Agents shows scorecards plus manager-only add/edit/deactivate/delete controls.
 - Add agent: manager/admin only.
 - Edit agent: manager/admin only; quick target/status edits are available in Team screen.
 - Deactivate agent: manager/admin only and blocked while the agent owns active properties, open tasks, or open deals.
@@ -44,6 +48,13 @@ The local model stores:
 - Agents cannot reassign property or task ownership to another agent.
 - Property reassignment syncs property, deal, agreement, and related task team ownership.
 - Task reassignment changes assigned agent and team.
+
+## UI Behavior
+
+- Manager/admin sees all team management sections.
+- Team leader sees scoped team sections and cannot manage users globally.
+- Agent does not see transfer or reassignment tabs.
+- Deactivation/delete actions surface through professional action menus and still rely on service-level RBAC checks before mutating local data.
 
 ## Audit Events
 

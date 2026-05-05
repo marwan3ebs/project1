@@ -1,6 +1,6 @@
 # RBAC Model
 
-Updated: 2026-05-04
+Updated: 2026-05-05
 
 ## Roles
 
@@ -38,6 +38,7 @@ Updated: 2026-05-04
 - `src/auth/ownership.js`: ownership/team resolution helpers.
 - `src/auth/scopeFilters.js`: scoped filters for properties, clients, agreements, deals, tasks, agents, and teams.
 - `src/auth/accessControl.js`: `can(user, permission, resource, context)` and business-specific helpers.
+- `src/auth/demoAccounts.js`, `src/auth/authService.js`, and `src/auth/currentSession.js`: local demo login, session restore, and logout. RBAC now follows the authenticated user instead of a visible role switcher.
 
 Required helpers implemented:
 
@@ -62,8 +63,10 @@ Required helpers implemented:
 
 `MainNavigator` calculates `visibleData` with `filterDataByUserAccess(currentUser, data)` and passes scoped data to every screen. Actions still run against the full local data set, but every important action checks RBAC before mutating state and logs denied attempts.
 
+The main app no longer exposes free Manager / Team Leader / Agent switching. Users log in with a demo account, the session is stored in AsyncStorage, and the logged-in user's `role`, `teamIds`, and `id` control visibility.
+
 ## Known Limitations
 
 - This is still a local Expo/AsyncStorage demo, not a backend-enforced security system.
-- Role switching is intentionally visible for demo validation.
+- Demo credentials are visible for validation, but switching requires logout/login instead of a one-click role switcher.
 - Hard security must move to server-side policy when a backend is added.

@@ -12,6 +12,9 @@ export function filterProperties(properties, filters) {
       !query ||
       [
         property.location,
+        property.title,
+        property.district,
+        property.compound,
         property.customerName,
         property.customerPhone,
         property.agentName,
@@ -21,6 +24,15 @@ export function filterProperties(properties, filters) {
       ].some((value) => includesText(value, query));
 
     const matchesAgent = filters.agentId === 'all' || property.agentId === filters.agentId;
+    const matchesTeam = !filters.teamId || filters.teamId === 'all' || property.teamId === filters.teamId;
+    const matchesMarket = !filters.marketType || filters.marketType === 'all' || property.marketType === filters.marketType;
+    const matchesStatus = !filters.status || filters.status === 'all' || property.status === filters.status;
+    const matchesLocation =
+      !filters.location ||
+      filters.location === 'all' ||
+      includesText(property.location, String(filters.location).toLowerCase()) ||
+      includesText(property.district, String(filters.location).toLowerCase()) ||
+      includesText(property.compound, String(filters.location).toLowerCase());
     const matchesAgreement =
       filters.agreementType === 'all' || property.agreementType === filters.agreementType;
     const matchesTransaction =
@@ -35,6 +47,10 @@ export function filterProperties(properties, filters) {
     return (
       matchesQuery &&
       matchesAgent &&
+      matchesTeam &&
+      matchesMarket &&
+      matchesStatus &&
+      matchesLocation &&
       matchesAgreement &&
       matchesTransaction &&
       matchesSource &&
@@ -44,8 +60,26 @@ export function filterProperties(properties, filters) {
   });
 }
 
-export function sortPropertiesForCrm(properties) {
+export function sortPropertiesForCrm(properties, sortBy = 'expiring_soon') {
   return [...properties].sort((a, b) => {
+    if (sortBy === 'newest') {
+      return String(b.createdAt || b.updatedAt).localeCompare(String(a.createdAt || a.updatedAt));
+    }
+
+    if (sortBy === 'highest_price') {
+      return Number(b.price || 0) - Number(a.price || 0);
+    }
+
+    if (sortBy === 'highest_commission') {
+      const commissionA = Number(a.rentCommission || 0) || (Number(a.price || 0) * ((Number(a.buyerCommissionPercent || 0) + Number(a.sellerCommissionPercent || 0)) / 100));
+      const commissionB = Number(b.rentCommission || 0) || (Number(b.price || 0) * ((Number(b.buyerCommissionPercent || 0) + Number(b.sellerCommissionPercent || 0)) / 100));
+      return commissionB - commissionA;
+    }
+
+    if (sortBy === 'latest_activity') {
+      return String(b.lastActivityAt || b.updatedAt).localeCompare(String(a.lastActivityAt || a.updatedAt));
+    }
+
     if (a.status !== b.status) {
       return a.status === 'active' ? -1 : 1;
     }

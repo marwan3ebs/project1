@@ -43,11 +43,11 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   option: {
-    minHeight: 36,
-    borderRadius: 8,
+    minHeight: 32,
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: '#cbd5e1',
-    paddingHorizontal: 11,
+    paddingHorizontal: 10,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.surface,
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
   },
   optionText: {
     color: COLORS.text,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '800',
   },
   activeText: {

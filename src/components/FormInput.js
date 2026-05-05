@@ -10,6 +10,7 @@ export function FormInput({
   placeholder,
   keyboardType = 'default',
   multiline = false,
+  secureTextEntry = false,
   error,
 }) {
   return (
@@ -21,6 +22,7 @@ export function FormInput({
         placeholder={placeholder}
         keyboardType={keyboardType}
         multiline={multiline}
+        secureTextEntry={secureTextEntry}
         placeholderTextColor="#94a3b8"
         style={[styles.input, multiline && styles.textArea, error && styles.inputError]}
       />

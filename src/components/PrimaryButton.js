@@ -14,7 +14,7 @@ export function PrimaryButton({ label, onPress, tone = 'primary', disabled = fal
       disabled={disabled}
       activeOpacity={0.82}
     >
-      <Text style={[styles.text, compact && styles.compactText]}>{label}</Text>
+      <Text style={[styles.text, tone === 'muted' && styles.mutedText, compact && styles.compactText]}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -37,11 +37,16 @@ const styles = StyleSheet.create({
   dark: {
     backgroundColor: colors.ink,
   },
+  accent: {
+    backgroundColor: colors.brandRed,
+  },
   danger: {
     backgroundColor: colors.danger,
   },
   muted: {
-    backgroundColor: '#64748b',
+    backgroundColor: colors.panelAlt,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
   },
   disabled: {
     opacity: 0.45,
@@ -50,6 +55,9 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 14,
     fontWeight: '900',
+  },
+  mutedText: {
+    color: colors.text,
   },
   compactText: {
     fontSize: 12,
