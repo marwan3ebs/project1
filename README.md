@@ -5,13 +5,14 @@ React Native / Expo CRM demo for RE/MAX Top Agents. The app manages real estate 
 ## Current Features
 
 - Professional manager dashboard with active inventory, signed agreements, closed deals, potential commission, expiring agreements, and today's tasks.
-- Upgraded inventory with search, filters, CRM badges, agreement expiry status, commission estimates, phase progress, view details, advance phase, and close deal actions.
-- Property detail screen with customer/contact details, agreement information, phase timeline, related follow-ups, and commission summary.
-- Add property/agreement form with required-field validation, generated agreement code, 3-month agreement end-date default, commission fields, and AsyncStorage save.
-- Schedule screen for meetings, previews, follow-ups, pricing, contract checks, signing, and agreement expiry tasks.
-- Analytics report screen with scoped role filters, summary cards, charts, ranked lists, risk alerts, recommendations, and export-ready report text.
-- Ownership/team management console with hierarchy, add/edit/deactivate/delete agent, transfer agent, reassign property/task, audit log, and ownership history.
-- Settings/demo screen for reset, seeding, app info, and role demo explanation.
+- Professional demo login using local AsyncStorage session state. The old free role switcher is removed from the main CRM.
+- Upgraded inventory with search, team/agent/location/status filters, sort controls, compact desktop table, action menus, real estate fields, agreement expiry status, commission estimates, phase progress, and manager-only delete.
+- Property detail screen with property overview, media/document placeholders, client details, agreement information, deal pipeline, financials, tasks, notes/history, ownership history, and management actions.
+- Add property/agreement form with required-field validation, generated agreement code, district/compound/layout fields, 3-month agreement end-date default, commission fields, and AsyncStorage save.
+- Schedule screen for meetings, previews, follow-ups, pricing, contract checks, signing, agreement expiry tasks, today/upcoming/overdue/completed sections, and quick task actions.
+- Analytics report screen with scoped role filters, executive section navigation, compact KPI cards, charts, ranked lists, risk alerts, recommendations, and export-ready report text.
+- Ownership/team management console with section tabs, hierarchy, add/edit/deactivate/delete agent, transfer agent, reassign property/task, audit log, and ownership history.
+- Settings/demo screen for reset, seeding, app info, signed-in access explanation, and demo credentials.
 - Local persistence with AsyncStorage and safe fallback to seed data if stored data is corrupted.
 - Responsive desktop CRM layout with sidebar navigation, max-width content, compact tables, and smaller desktop action buttons.
 - Real RBAC helper layer for properties, clients, agreements, deals, tasks, reports, commissions, settings, users, transfers, and reassignment.
@@ -49,6 +50,16 @@ Useful validation command:
 ```bash
 npx expo export --platform web
 ```
+
+## Demo Login Accounts
+
+| Role | Email | Password | Scope |
+| --- | --- | --- | --- |
+| Manager/Admin | `manager@remax-topagents.com` | `manager123` | Company-wide access |
+| Team Leader | `leader.east@remax-topagents.com` | `leader123` | East Cairo team only |
+| Agent | `sara.agent@remax-topagents.com` | `agent123` | Own records only |
+
+Authentication is local demo auth stored in AsyncStorage. It is not backend authentication yet.
 
 ## Folder Structure
 
@@ -88,18 +99,19 @@ npx expo export --platform web
 | Schedule | Add and manage CRM follow-ups and meetings. |
 | Reports | Scoped analytics, charts, ranked lists, biweekly report text. |
 | Team | Team performance, ownership management, transfers, reassignment, audit history. |
-| Settings | Reset/seed demo data, switch roles, and inspect permission scope. |
+| Settings | Reset/seed demo data, view signed-in access, and inspect demo credentials. |
 
 ## Demo Workflow
 
-1. Start on Home and explain manager summary cards.
+1. Sign in as manager with `manager@remax-topagents.com` / `manager123`.
+2. Start on Home and explain manager summary cards.
 2. Open Inventory and search/filter agreements.
 3. Open a Property Detail screen and show customer, agreement, timeline, tasks, and commission.
 4. Advance a phase and explain the resale workflow.
 5. Close a deal and show confirmed commission.
 6. Open Reports and generate the biweekly summary.
 7. Open Team to show team leader tracking.
-8. Switch role to Team Leader or Agent to show scoped data.
+8. Logout, then sign in as Team Leader or Agent to show scoped data.
 9. Open Settings and reset demo data.
 
 ## Branch Workflow
@@ -126,6 +138,7 @@ Do not merge this feature branch into `dev` until validation is complete and rev
 - `docs/TEAM_MANAGEMENT.md`
 - `docs/ANALYTICS_REPORTS.md`
 - `docs/UI_RESPONSIVE_REDESIGN.md`
+- `docs/UI_PROFESSIONALIZATION_AUDIT.md`
 - `docs/CRM_ACTIONS.md`
 - `docs/NEXT_BACKEND_PLAN.md`
 - `docs/TECHNICAL_AUDIT.md`

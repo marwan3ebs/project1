@@ -1,6 +1,6 @@
 # CRM Actions
 
-Updated: 2026-05-04
+Updated: 2026-05-05
 
 ## Property Actions
 
@@ -25,6 +25,7 @@ Updated: 2026-05-04
 - Mark commission received.
 - Archive property.
 - Delete property, manager/admin only.
+- Desktop inventory exposes these through compact action menus instead of crowded visible buttons.
 
 ## Client Actions
 
@@ -45,6 +46,7 @@ Updated: 2026-05-04
 ## Task Actions
 
 - Add task.
+- Edit task through scoped quick actions.
 - Complete task.
 - Reopen task.
 - Change priority.
@@ -62,6 +64,6 @@ Every important action:
 
 ## Persistence
 
-Storage key: `top-agents-collaboration:v4`.
+Storage key: `top-agents-collaboration:v5`.
 
-Legacy v3 demo data is migrated through `normalizeCrmData`.
+Legacy v4/v3 demo data is migrated through `normalizeCrmData`.
