@@ -14,6 +14,8 @@ export {
   getVisibleTeams,
 } from './accessControl.js';
 export { DEFAULT_DEMO_USER_ID, DEMO_USERS } from './currentUserDemo.js';
+export { login, logout, restoreSession, saveSession, clearSession, getCurrentUser } from './authService.js';
+export { DEMO_ACCOUNTS } from './demoAccounts.js';
 export {
   filterAgentsByScope,
   filterAgreementsByScope,

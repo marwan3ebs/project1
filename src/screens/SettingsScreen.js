@@ -1,8 +1,8 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 
-import { Card, PrimaryButton, RoleSwitcher, SectionHeader, StatusBadge } from '../components/index.js';
-import { ROLE_LABELS, ROLE_PERMISSIONS } from '../auth/index.js';
+import { Card, PrimaryButton, SectionHeader, StatusBadge } from '../components/index.js';
+import { DEMO_ACCOUNTS, ROLE_LABELS, ROLE_PERMISSIONS } from '../auth/index.js';
 import { COMPANY } from '../constants/index.js';
 import { screen } from './screenStyles.js';
 
@@ -39,14 +39,30 @@ export function SettingsScreen({ data, allData, actions, currentUser }) {
       </Card>
 
       <Card>
-        <Text style={screen.title}>Role demo</Text>
-        <Text style={screen.body}>Switch roles to validate manager, team leader, and agent visibility.</Text>
-        <View style={{ marginTop: 12 }}>
-          <RoleSwitcher users={allData?.users || data.users || data.agents} currentUser={currentUser} onChange={actions.switchUser} />
-        </View>
+        <Text style={screen.title}>Signed-in access</Text>
+        <Text style={screen.body}>
+          Role scope is controlled by the demo login session. Logout and sign in with another account to test a different RBAC scope.
+        </Text>
         <View style={screen.divider} />
         <Text style={screen.meta}>Active role: {ROLE_LABELS[currentUser?.role] || currentUser?.role}</Text>
         <Text style={screen.body}>{(ROLE_PERMISSIONS[currentUser?.role] || []).join(', ')}</Text>
+      </Card>
+
+      <Card>
+        <Text style={screen.title}>Demo login accounts</Text>
+        <Text style={screen.body}>
+          These accounts are local demo credentials only. They are meant for testing manager, team leader, and agent visibility without a backend.
+        </Text>
+        {DEMO_ACCOUNTS.map((account) => (
+          <View key={account.email} style={[screen.rowBetween, { marginTop: 12 }]}>
+            <View style={{ flex: 1 }}>
+              <Text style={screen.infoValue}>{account.label}</Text>
+              <Text style={screen.meta}>{account.email}</Text>
+              <Text style={screen.meta}>Password: {account.password}</Text>
+            </View>
+            <StatusBadge label={account.scopeLabel} tone="primary" />
+          </View>
+        ))}
       </Card>
     </View>
   );
