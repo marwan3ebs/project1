@@ -6,6 +6,7 @@ import {
   Card,
   ChartCard,
   DonutChart,
+  FilterChip,
   HorizontalBarChart,
   MetricTrend,
   SectionHeader,
@@ -23,6 +24,7 @@ export function ReportsScreen({ data, currentUser }) {
   const [datePreset, setDatePreset] = useState('biweekly');
   const [teamId, setTeamId] = useState('all');
   const [agentId, setAgentId] = useState('all');
+  const [reportSection, setReportSection] = useState('overview');
   const [generatedAt, setGeneratedAt] = useState(null);
 
   const scopedData = useMemo(() => {
@@ -106,6 +108,21 @@ export function ReportsScreen({ data, currentUser }) {
         ) : null}
       </Card>
 
+      <View style={screen.wrapRow}>
+        {[
+          ['overview', 'Overview'],
+          ['pipeline', 'Pipeline'],
+          ['commission', 'Commission'],
+          ['teams', 'Teams'],
+          ['agents', 'Agents'],
+          ['risk', 'Risk'],
+          ['sources', 'Sources'],
+          ['export', 'Export'],
+        ].map(([value, label]) => (
+          <FilterChip key={value} label={label} active={reportSection === value} onPress={() => setReportSection(value)} />
+        ))}
+      </View>
+
       <View style={screen.grid}>
         <StatCard label="Active inventory" value={analytics.activeProperties.length} detail="Scoped listings" />
         <StatCard label="Signed agreements" value={analytics.signedInWindow.length} detail="Selected window" tone="amber" />
@@ -115,117 +132,175 @@ export function ReportsScreen({ data, currentUser }) {
         <StatCard label="Conversion rate" value={`${analytics.conversionRate}%`} detail="All scoped deals" tone="amber" />
       </View>
 
-      <SectionHeader title="Executive Summary" subtitle="High-signal operating metrics" />
-      <View style={screen.grid}>
-        <MetricTrend label="Closed in window" value={analytics.closedInWindow.length} trend={analytics.closedInWindow.length ? 12 : 0} />
-        <MetricTrend label="Expiry risk" value={analytics.expiringAgreements.length} trend={analytics.expiringAgreements.length ? -8 : 0} />
-        <MetricTrend label="Overdue follow-ups" value={analytics.overdueTasks.length} trend={analytics.overdueTasks.length ? -15 : 5} />
-      </View>
+      {reportSection === 'overview' ? (
+        <>
+          <SectionHeader title="Executive Summary" subtitle="High-signal operating metrics" />
+          <View style={screen.grid}>
+            <MetricTrend label="Closed in window" value={analytics.closedInWindow.length} trend={analytics.closedInWindow.length ? 12 : 0} />
+            <MetricTrend label="Expiry risk" value={analytics.expiringAgreements.length} trend={analytics.expiringAgreements.length ? -8 : 0} />
+            <MetricTrend label="Overdue follow-ups" value={analytics.overdueTasks.length} trend={analytics.overdueTasks.length ? -15 : 5} />
+          </View>
 
-      <SectionHeader title="Agreements & Inventory" />
-      <View style={screen.grid}>
-        <ChartCard title="Open vs exclusive" subtitle="Active agreement mix">
-          <DonutChart
-            data={analytics.agreementTypeRatio.map((row, index) => ({
-              ...row,
-              color: ['#0f766e', '#2563eb', '#c2410c'][index % 3],
-            }))}
-          />
-        </ChartCard>
-        <ChartCard title="Primary vs resale" subtitle="Inventory market mix">
-          <HorizontalBarChart data={analytics.marketRatio} />
-        </ChartCard>
-      </View>
+          <SectionHeader title="Agreements & Inventory" />
+          <View style={screen.grid}>
+            <ChartCard title="Open vs exclusive" subtitle="Active agreement mix">
+              <DonutChart
+                data={analytics.agreementTypeRatio.map((row, index) => ({
+                  ...row,
+                  color: ['#17233a', '#c1121f', '#0f766e'][index % 3],
+                }))}
+              />
+            </ChartCard>
+            <ChartCard title="Primary vs resale" subtitle="Inventory market mix">
+              <HorizontalBarChart data={analytics.marketRatio} color="#17233a" />
+            </ChartCard>
+          </View>
+        </>
+      ) : null}
 
-      <SectionHeader title="Deal Pipeline" />
-      <View style={screen.grid}>
-        <ChartCard title="Phase distribution" subtitle="Workflow bottlenecks">
-          <BarChart data={analytics.phaseDistribution} />
-        </ChartCard>
-        <ChartCard title="Rent vs purchase" subtitle="Transaction mix">
-          <HorizontalBarChart data={analytics.transactionRatio} color="#2563eb" />
-        </ChartCard>
-      </View>
-
-      <SectionHeader title="Commission Analysis" />
-      <View style={screen.grid}>
-        <ChartCard title="Top commission agents" subtitle="Confirmed commission">
-          <HorizontalBarChart
-            data={analytics.topCommissionAgents.map((row) => ({
-              label: row.agent.name,
-              value: row.confirmedCommission,
-            }))}
-            color="#c2410c"
-            valueFormatter={formatMoney}
-          />
-        </ChartCard>
-        <ChartCard title="Team ranking" subtitle="Confirmed commission">
-          <HorizontalBarChart
-            data={analytics.teamRanking.map((row) => ({ label: row.team.name, value: row.confirmedCommission }))}
-            color="#0f766e"
-            valueFormatter={formatMoney}
-          />
-        </ChartCard>
-      </View>
-
-      <SectionHeader title="Agent Performance" />
-      {analytics.agentRows.map((row) => (
-        <Card key={row.agent.id}>
-          <View style={screen.rowBetween}>
-            <View>
-              <Text style={screen.title}>{row.agent.name}</Text>
-              <Text style={screen.meta}>{row.agent.role.replace('_', ' ')} | target {row.targetProgress}%</Text>
+      {reportSection === 'pipeline' ? (
+        <>
+          <SectionHeader title="Deal Pipeline" />
+          <View style={screen.grid}>
+            <ChartCard title="Phase distribution" subtitle="Workflow bottlenecks">
+              <BarChart data={analytics.phaseDistribution} color="#17233a" />
+            </ChartCard>
+            <ChartCard title="Rent vs purchase" subtitle="Transaction mix">
+              <HorizontalBarChart data={analytics.transactionRatio} color="#334155" />
+            </ChartCard>
+          </View>
+          <Card>
+            <View style={screen.detailGrid}>
+              <Info label="Bottleneck phase" value={`${analytics.bottleneckPhase?.label || 'n/a'} ${analytics.bottleneckPhase?.title || ''}`} />
+              <Info label="Conversion rate" value={`${analytics.conversionRate}%`} />
+              <Info label="Stale/overdue follow-ups" value={analytics.overdueTasks.length} />
+              <Info label="Open tasks" value={analytics.openTasks.length} />
             </View>
-            <Text style={screen.title}>{formatMoney(row.confirmedCommission)}</Text>
+          </Card>
+        </>
+      ) : null}
+
+      {reportSection === 'commission' ? (
+        <>
+          <SectionHeader title="Commission Analysis" />
+          <View style={screen.grid}>
+            <ChartCard title="Top commission agents" subtitle="Confirmed commission">
+              <HorizontalBarChart
+                data={analytics.topCommissionAgents.map((row) => ({
+                  label: row.agent.name,
+                  value: row.confirmedCommission,
+                }))}
+                color="#c1121f"
+                valueFormatter={formatMoney}
+              />
+            </ChartCard>
+            <ChartCard title="Team ranking" subtitle="Confirmed commission">
+              <HorizontalBarChart
+                data={analytics.teamRanking.map((row) => ({ label: row.team.name, value: row.confirmedCommission }))}
+                color="#0f766e"
+                valueFormatter={formatMoney}
+              />
+            </ChartCard>
           </View>
-          <View style={screen.detailGrid}>
-            <Info label="Inventory" value={row.activeInventory} />
-            <Info label="Closed" value={row.closedDeals} />
-            <Info label="Tasks" value={row.taskLoad} />
-            <Info label="Overdue" value={row.overdueTasks} />
-          </View>
-        </Card>
-      ))}
+        </>
+      ) : null}
 
-      <SectionHeader title="Risk & Follow-up Alerts" />
-      <Card>
-        <View style={screen.detailGrid}>
-          <Info label="Expiring agreements" value={analytics.expiringAgreements.length} />
-          <Info label="Overdue follow-ups" value={analytics.overdueTasks.length} />
-          <Info label="Bottleneck phase" value={`${analytics.bottleneckPhase?.label || 'n/a'} ${analytics.bottleneckPhase?.title || ''}`} />
-          <Info label="Open tasks" value={analytics.openTasks.length} />
-        </View>
-      </Card>
+      {reportSection === 'teams' ? (
+        <>
+          <SectionHeader title="Team Performance" />
+          {analytics.teamRanking.map((row) => (
+            <Card key={row.team.id}>
+              <View style={screen.rowBetween}>
+                <View>
+                  <Text style={screen.title}>{row.team.name}</Text>
+                  <Text style={screen.meta}>Target {row.team.target || 0} agreements</Text>
+                </View>
+                <Text style={screen.title}>{formatMoney(row.confirmedCommission)}</Text>
+              </View>
+              <View style={screen.detailGrid}>
+                <Info label="Inventory" value={row.activeInventory} />
+                <Info label="Closed" value={row.closedDeals} />
+                <Info label="Potential" value={formatMoney(row.potentialCommission)} />
+              </View>
+            </Card>
+          ))}
+        </>
+      ) : null}
 
-      <SectionHeader title="Source Quality Analysis" />
-      <ChartCard title="Source performance" subtitle="Lead volume and conversion quality">
-        <HorizontalBarChart data={analytics.sourcePerformance} color="#1d4ed8" />
-        <View style={screen.divider} />
-        {analytics.sourcePerformance.map((row) => (
-          <Text key={row.label} style={screen.body}>
-            {row.label}: {row.value} leads, {row.closed} closed, {row.conversionRate}% conversion
-          </Text>
-        ))}
-      </ChartCard>
+      {reportSection === 'agents' ? (
+        <>
+          <SectionHeader title="Agent Performance" />
+          {analytics.agentRows.map((row) => (
+            <Card key={row.agent.id}>
+              <View style={screen.rowBetween}>
+                <View>
+                  <Text style={screen.title}>{row.agent.name}</Text>
+                  <Text style={screen.meta}>{row.agent.role.replace('_', ' ')} | target {row.targetProgress}%</Text>
+                </View>
+                <Text style={screen.title}>{formatMoney(row.confirmedCommission)}</Text>
+              </View>
+              <View style={screen.detailGrid}>
+                <Info label="Inventory" value={row.activeInventory} />
+                <Info label="Closed" value={row.closedDeals} />
+                <Info label="Tasks" value={row.taskLoad} />
+                <Info label="Overdue" value={row.overdueTasks} />
+              </View>
+            </Card>
+          ))}
+        </>
+      ) : null}
 
-      <SectionHeader title="Recommendations" />
-      <Card>
-        {analytics.recommendations.map((item) => (
-          <Text key={item} style={screen.body}>{item}</Text>
-        ))}
-      </Card>
+      {reportSection === 'risk' ? (
+        <>
+          <SectionHeader title="Risk & Follow-up Alerts" />
+          <Card>
+            <View style={screen.detailGrid}>
+              <Info label="Expiring agreements" value={analytics.expiringAgreements.length} />
+              <Info label="Overdue follow-ups" value={analytics.overdueTasks.length} />
+              <Info label="Bottleneck phase" value={`${analytics.bottleneckPhase?.label || 'n/a'} ${analytics.bottleneckPhase?.title || ''}`} />
+              <Info label="Open tasks" value={analytics.openTasks.length} />
+            </View>
+          </Card>
+        </>
+      ) : null}
 
-      <SectionHeader title="Export-ready report text" subtitle="Manager/team report copy" />
-      <Card>
-        <Text style={screen.body}>{exportText}</Text>
-        {generatedAt ? <Text style={screen.meta}>Generated locally at {generatedAt}</Text> : null}
-        <View style={screen.actionRow}>
-          <Text style={screen.meta}>Biweekly report generation is local and export-ready.</Text>
-          <Text style={screen.title} onPress={() => setGeneratedAt(new Date().toLocaleString('en'))}>
-            Generate
-          </Text>
-        </View>
-      </Card>
+      {reportSection === 'sources' ? (
+        <>
+          <SectionHeader title="Source Quality Analysis" />
+          <ChartCard title="Source performance" subtitle="Lead volume and conversion quality">
+            <HorizontalBarChart data={analytics.sourcePerformance} color="#17233a" />
+            <View style={screen.divider} />
+            {analytics.sourcePerformance.map((row) => (
+              <Text key={row.label} style={screen.body}>
+                {row.label}: {row.value} leads, {row.closed} closed, {row.conversionRate}% conversion
+              </Text>
+            ))}
+          </ChartCard>
+        </>
+      ) : null}
+
+      {reportSection === 'export' ? (
+        <>
+          <SectionHeader title="Recommendations" />
+          <Card>
+            {analytics.recommendations.map((item) => (
+              <Text key={item} style={screen.body}>{item}</Text>
+            ))}
+          </Card>
+
+          <SectionHeader title="Export-ready report text" subtitle="Manager/team report copy" />
+          <Card>
+            <Text style={screen.body}>{exportText}</Text>
+            {generatedAt ? <Text style={screen.meta}>Generated locally at {generatedAt}</Text> : null}
+            <View style={screen.actionRow}>
+              <Text style={screen.meta}>Biweekly report generation is local and export-ready.</Text>
+              <Text style={screen.title} onPress={() => setGeneratedAt(new Date().toLocaleString('en'))}>
+                Generate
+              </Text>
+            </View>
+          </Card>
+        </>
+      ) : null}
     </View>
   );
 }

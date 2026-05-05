@@ -36,12 +36,18 @@ export function PropertyDetailScreen({ data, helpers, actions, navigate, route, 
   const commission = calculateCommission(property);
   const relatedTasks = data.tasks.filter((task) => task.relatedPropertyId === property.id);
   const relatedAgreement = (data.agreements || []).find((agreement) => agreement.propertyId === property.id);
+  const ownershipHistory = (data.ownershipHistory || []).filter((entry) => entry.entityId === property.id);
 
   return (
     <View>
-      <SectionHeader title={property.location} subtitle={property.agreementCode} actionLabel="Back" onAction={() => navigate('inventory')} />
+      <SectionHeader title={property.title || property.location} subtitle={`${property.agreementCode} | ${property.location}`} actionLabel="Back" onAction={() => navigate('inventory')} />
 
       <Card>
+        <View style={{ borderRadius: 8, borderWidth: 1, borderColor: '#dbe4ef', backgroundColor: '#f8fafc', minHeight: 118, padding: 14, justifyContent: 'space-between', marginBottom: 12 }}>
+          <Text style={screen.infoLabel}>Property media</Text>
+          <Text style={screen.title}>{property.photosCount || 0} photos ready</Text>
+          <Text style={screen.meta}>{property.documentsCount || 0} contract/documents | {property.marketingStatus || 'listed'}</Text>
+        </View>
         <View style={screen.rowBetween}>
           <View style={{ flex: 1 }}>
             <Text style={screen.title}>{property.customerName}</Text>
@@ -56,19 +62,34 @@ export function PropertyDetailScreen({ data, helpers, actions, navigate, route, 
         </View>
       </Card>
 
-      <SectionHeader title="Property and agreement" />
+      <SectionHeader title="Property overview" />
       <Card>
         <View style={screen.detailGrid}>
           <Info label="Agent" value={property.agentName} />
           <Info label="Team" value={helpers.teamById[property.teamId]?.name || property.teamId} />
           <Info label="Property type" value={labelFor(PROPERTY_TYPES, property.propertyType)} />
+          <Info label="District" value={property.district || property.location} />
+          <Info label="Compound" value={property.compound || 'Not specified'} />
           <Info label="Market" value={`${property.marketType} | ${property.transactionType}`} />
           <Info label="Price" value={formatMoney(property.price)} />
           <Info label="Area" value={`${property.area} sqm`} />
+          <Info label="Layout" value={`${property.bedrooms || '-'} bed / ${property.bathrooms || '-'} bath / ${property.floor || '-'}`} />
+          <Info label="View / finish" value={`${property.view || 'n/a'} / ${property.finishing || 'n/a'}`} />
           <Info label="Source" value={labelFor(UNIT_SOURCES, property.source)} />
-          <Info label="Agreement dates" value={`${formatDate(property.agreementStartDate)} to ${formatDate(property.agreementEndDate)}`} />
+          <Info label="Last activity" value={formatDate(property.lastActivityAt || property.updatedAt)} />
+          <Info label="Next follow-up" value={property.nextFollowUpAt ? formatDate(property.nextFollowUpAt) : 'Not scheduled'} />
         </View>
         <Text style={screen.body}>{property.notes}</Text>
+      </Card>
+
+      <SectionHeader title="Agreement details" />
+      <Card>
+        <View style={screen.detailGrid}>
+          <Info label="Agreement code" value={property.agreementCode} />
+          <Info label="Agreement type" value={property.agreementType} />
+          <Info label="Expiry risk" value={expiry.label} />
+          <Info label="Agreement dates" value={`${formatDate(property.agreementStartDate)} to ${formatDate(property.agreementEndDate)}`} />
+        </View>
       </Card>
 
       <SectionHeader title="Workflow timeline" subtitle={`${getPhaseProgress(property.currentPhase)}% complete`} />
@@ -128,6 +149,16 @@ export function PropertyDetailScreen({ data, helpers, actions, navigate, route, 
             <StatusBadge label={task.status} tone={task.status === 'done' ? 'success' : 'info'} />
           </View>
           <Text style={screen.body}>{task.notes}</Text>
+        </Card>
+      ))}
+
+      <SectionHeader title="Ownership history" />
+      {ownershipHistory.length === 0 ? <EmptyState title="No ownership changes" body="This property has not been reassigned in the local demo history." /> : null}
+      {ownershipHistory.slice(0, 5).map((entry) => (
+        <Card key={entry.id}>
+          <Text style={screen.title}>{entry.action}</Text>
+          <Text style={screen.meta}>{entry.createdAt} | {entry.reason}</Text>
+          <Text style={screen.body}>{entry.fromUserId || entry.fromTeamId || 'n/a'} to {entry.toUserId || entry.toTeamId || 'n/a'}</Text>
         </Card>
       ))}
 

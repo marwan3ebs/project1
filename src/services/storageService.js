@@ -3,8 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createSeedData } from '../data/sampleData.js';
 import { normalizeCrmData } from '../utils/dataModelUtils.js';
 
-const STORAGE_KEY = 'top-agents-collaboration:v4';
-const LEGACY_KEYS = ['top-agents-collaboration:v3'];
+const STORAGE_KEY = 'top-agents-collaboration:v5';
+const LEGACY_KEYS = ['top-agents-collaboration:v4', 'top-agents-collaboration:v3'];
 
 export async function loadCrmData() {
   try {

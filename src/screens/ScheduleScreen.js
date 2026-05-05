@@ -4,6 +4,7 @@ import { Alert, Text, View } from 'react-native';
 import {
   Card,
   EmptyState,
+  FilterChip,
   FormInput,
   ActionMenu,
   PrimaryButton,
@@ -29,11 +30,16 @@ function emptyTask(data) {
 
 export function ScheduleScreen({ data, helpers, actions }) {
   const [showForm, setShowForm] = useState(false);
+  const [taskTab, setTaskTab] = useState('today');
   const [form, setForm] = useState(() => emptyTask(data));
-  const openTasks = data.tasks
-    .filter((task) => task.status !== 'done')
-    .sort((a, b) => String(a.dueDate).localeCompare(String(b.dueDate)));
-  const doneTasks = data.tasks.filter((task) => task.status === 'done').slice(0, 5);
+  const sortedTasks = [...data.tasks].sort((a, b) => String(a.dueDate).localeCompare(String(b.dueDate)));
+  const taskBuckets = {
+    today: sortedTasks.filter((task) => task.status !== 'done' && daysUntil(task.dueDate) === 0),
+    upcoming: sortedTasks.filter((task) => task.status !== 'done' && daysUntil(task.dueDate) > 0),
+    overdue: sortedTasks.filter((task) => task.status !== 'done' && daysUntil(task.dueDate) < 0),
+    completed: sortedTasks.filter((task) => task.status === 'done'),
+  };
+  const visibleTasks = taskBuckets[taskTab] || taskBuckets.today;
 
   const propertyOptions = data.properties.map((property) => ({
     value: property.id,
@@ -69,32 +75,27 @@ export function ScheduleScreen({ data, helpers, actions }) {
 
       {showForm ? (
         <Card>
+          <FormInput label="Task title" value={form.title} onChangeText={(value) => update('title', value)} />
           <SelectInput label="Task type" options={TASK_TYPES} value={form.type} onChange={(value) => update('type', value)} />
           <SelectInput label="Agent" options={agentOptions} value={form.agentId} onChange={(value) => update('agentId', value)} />
           <SelectInput label="Property" options={propertyOptions} value={form.relatedPropertyId} onChange={(value) => update('relatedPropertyId', value)} />
           <SelectInput label="Priority" options={PRIORITIES} value={form.priority} onChange={(value) => update('priority', value)} />
-          <FormInput label="Title" value={form.title} onChangeText={(value) => update('title', value)} />
           <FormInput label="Due date" value={form.dueDate} onChangeText={(value) => update('dueDate', value)} />
           <FormInput label="Notes" value={form.notes} onChangeText={(value) => update('notes', value)} multiline />
           <PrimaryButton label="Add schedule item" onPress={submit} />
         </Card>
       ) : null}
 
-      <SectionHeader title="Open work" subtitle={`${openTasks.length} active CRM tasks`} />
-      {openTasks.length === 0 ? <EmptyState title="Schedule clear" body="No meetings or follow-ups are open." /> : null}
-      {openTasks.map((task) => (
-        <TaskCard
-          key={task.id}
-          task={task}
-          agent={helpers.agentById[task.agentId]}
-          property={helpers.propertyById[task.relatedPropertyId]}
-          onToggle={() => actions.toggleTask(task.id)}
-          onUpdate={(patch) => actions.updateTask(task.id, patch)}
-        />
-      ))}
+      <View style={screen.wrapRow}>
+        <FilterChip label={`Today ${taskBuckets.today.length}`} active={taskTab === 'today'} onPress={() => setTaskTab('today')} />
+        <FilterChip label={`Upcoming ${taskBuckets.upcoming.length}`} active={taskTab === 'upcoming'} onPress={() => setTaskTab('upcoming')} />
+        <FilterChip label={`Overdue ${taskBuckets.overdue.length}`} active={taskTab === 'overdue'} onPress={() => setTaskTab('overdue')} />
+        <FilterChip label={`Completed ${taskBuckets.completed.length}`} active={taskTab === 'completed'} onPress={() => setTaskTab('completed')} />
+      </View>
 
-      {doneTasks.length ? <SectionHeader title="Completed recently" /> : null}
-      {doneTasks.map((task) => (
+      <SectionHeader title="Task board" subtitle={`${visibleTasks.length} ${taskTab} CRM items`} />
+      {visibleTasks.length === 0 ? <EmptyState title="Schedule clear" body="No meetings, previews, or follow-ups in this section." /> : null}
+      {visibleTasks.map((task) => (
         <TaskCard
           key={task.id}
           task={task}
@@ -124,13 +125,14 @@ function TaskCard({ task, agent, property, onToggle, onUpdate }) {
         <StatusBadge label={label} tone={tone} />
       </View>
       {property ? (
-        <Text style={screen.body}>{property.agreementCode} | {property.customerName} | {property.location}</Text>
+        <Text style={screen.body}>{property.agreementCode} | {property.customerName} | {property.title || property.location}</Text>
       ) : null}
       <Text style={screen.body}>{task.notes}</Text>
       <ActionMenu actions={[
         { label: task.status === 'done' ? 'Reopen' : 'Mark done', onPress: onToggle, tone: 'dark' },
         { label: 'High priority', onPress: () => onUpdate({ priority: 'high' }) },
         { label: 'Due tomorrow', onPress: () => onUpdate({ dueDate: daysFromToday(1) }) },
+        { label: 'Low priority', onPress: () => onUpdate({ priority: 'low' }) },
         { label: 'Reopen', onPress: () => onUpdate({ status: 'open' }) },
       ]} />
     </Card>

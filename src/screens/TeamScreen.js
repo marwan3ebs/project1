@@ -4,6 +4,7 @@ import { Alert, Text, View } from 'react-native';
 import {
   ActionMenu,
   Card,
+  FilterChip,
   FormInput,
   ProgressBar,
   SectionHeader,
@@ -14,6 +15,7 @@ import {
 } from '../components/index.js';
 import { ROLES, canManageUser, isManagerRole } from '../auth/index.js';
 import { calculateCommission, formatMoney } from '../utils/commissionUtils.js';
+import { daysUntil } from '../utils/dateUtils.js';
 import { hasActiveOwnedWork } from '../utils/ownershipUtils.js';
 import { screen } from './screenStyles.js';
 
@@ -39,6 +41,7 @@ export function TeamScreen({ data, allData, currentUser, actions }) {
   const [propertyAgentId, setPropertyAgentId] = useState(data.agents.find((agent) => agent.role === 'agent')?.id || '');
   const [taskId, setTaskId] = useState(data.tasks[0]?.id || '');
   const [taskAgentId, setTaskAgentId] = useState(data.agents.find((agent) => agent.role === 'agent')?.id || '');
+  const [section, setSection] = useState('overview');
 
   const teamOptions = data.teams.map((team) => ({ value: team.id, label: team.name }));
   const activeTeamId = teamId || data.teams[0]?.id;
@@ -98,23 +101,52 @@ export function TeamScreen({ data, allData, currentUser, actions }) {
         <SelectInput label="Team" options={teamOptions} value={activeTeamId} onChange={setTeamId} />
       ) : null}
 
-      <Card>
-        <TeamHierarchyTree
-          teams={data.teams}
-          agents={data.agents}
-          manager={(allData?.agents || data.agents).find((agent) => agent.role === ROLES.MANAGER || agent.role === ROLES.ADMIN)}
-        />
-      </Card>
-
-      <View style={screen.grid}>
-        <StatCard label="Team inventory" value={activeProperties.length} detail="Active agreements" />
-        <StatCard label="Closed deals" value={closedProperties.length} detail="All time" tone="rose" />
-        <StatCard label="Commission" value={formatMoney(teamCommission)} detail="Confirmed" tone="amber" />
-        <StatCard label="Active agents" value={teamAgents.filter((agent) => agent.status !== 'inactive').length} detail="In scope" tone="slate" />
+      <View style={screen.wrapRow}>
+        {[
+          ['overview', 'Overview'],
+          ['hierarchy', 'Hierarchy'],
+          ['agents', 'Agents'],
+          currentUser?.role !== ROLES.AGENT && ['transfers', 'Transfers'],
+          currentUser?.role !== ROLES.AGENT && ['reassignment', 'Reassignment'],
+          ['audit', 'Audit log'],
+        ].filter(Boolean).map(([value, label]) => (
+          <FilterChip key={value} label={label} active={section === value} onPress={() => setSection(value)} />
+        ))}
       </View>
 
-      <SectionHeader title="Agent scorecards" />
-      {teamAgents.map((agent) => {
+      {section === 'hierarchy' ? (
+        <Card>
+          <TeamHierarchyTree
+            teams={data.teams}
+            agents={data.agents}
+            manager={(allData?.agents || data.agents).find((agent) => agent.role === ROLES.MANAGER || agent.role === ROLES.ADMIN)}
+          />
+        </Card>
+      ) : null}
+
+      {section === 'overview' ? (
+        <>
+          <View style={screen.grid}>
+            <StatCard label="Team inventory" value={activeProperties.length} detail="Active agreements" />
+            <StatCard label="Closed deals" value={closedProperties.length} detail="All time" tone="rose" />
+            <StatCard label="Commission" value={formatMoney(teamCommission)} detail="Confirmed" tone="amber" />
+            <StatCard label="Active agents" value={teamAgents.filter((agent) => agent.status !== 'inactive').length} detail="In scope" tone="slate" />
+          </View>
+          <Card>
+            <View style={screen.detailGrid}>
+              <Info label="Overdue tasks" value={data.tasks.filter((task) => task.teamId === activeTeamId && task.status !== 'done').length} />
+              <Info label="Expiring agreements" value={data.properties.filter((property) => property.teamId === activeTeamId && property.status === 'active' && daysUntil(property.agreementEndDate) <= 30).length} />
+              <Info label="Team target" value={data.teams.find((team) => team.id === activeTeamId)?.target || 0} />
+              <Info label="Inactive agents" value={teamAgents.filter((agent) => agent.status === 'inactive').length} />
+            </View>
+          </Card>
+        </>
+      ) : null}
+
+      {section === 'agents' ? (
+        <>
+          <SectionHeader title="Agent scorecards" />
+          {teamAgents.map((agent) => {
         const agentProperties = data.properties.filter((property) => property.ownerAgentId === agent.id || property.agentId === agent.id);
         const active = agentProperties.filter((property) => !['closed', 'archived', 'expired'].includes(property.status));
         const closed = agentProperties.filter((property) => property.status === 'closed');
@@ -129,8 +161,8 @@ export function TeamScreen({ data, allData, currentUser, actions }) {
         const progress = (active.length / Math.max(agent.target || 1, 1)) * 100;
         const work = hasActiveOwnedWork(allData || data, agent.id);
 
-        return (
-          <Card key={agent.id}>
+            return (
+              <Card key={agent.id}>
             <View style={screen.rowBetween}>
               <View>
                 <Text style={screen.title}>{agent.name}</Text>
@@ -158,11 +190,13 @@ export function TeamScreen({ data, allData, currentUser, actions }) {
                 ]}
               />
             ) : null}
-          </Card>
-        );
-      })}
+              </Card>
+            );
+          })}
+        </>
+      ) : null}
 
-      {manageable ? (
+      {section === 'agents' && manageable ? (
         <>
           <SectionHeader title="Add agent" subtitle="Manager/admin user creation" />
           <Card>
@@ -204,14 +238,23 @@ export function TeamScreen({ data, allData, currentUser, actions }) {
         </>
       ) : null}
 
-      <SectionHeader title="Transfer and reassignment" subtitle="Ownership changes are audited" />
-      <Card>
+      {section === 'transfers' ? (
+        <>
+          <SectionHeader title="Transfers" subtitle="Move agents between teams with audit history" />
+          <Card>
         <SelectInput label="Transfer agent" options={agentOptions} value={transferAgentId} onChange={setTransferAgentId} />
         <SelectInput label="Move to team" options={allTeamOptions} value={transferTeamId} onChange={setTransferTeamId} />
         <ActionMenu actions={[
           { label: 'Transfer agent', tone: 'dark', onPress: () => actions.transferAgent(transferAgentId, transferTeamId, 'Team capacity balancing') },
         ]} />
-        <View style={screen.divider} />
+          </Card>
+        </>
+      ) : null}
+
+      {section === 'reassignment' ? (
+        <>
+          <SectionHeader title="Reassignment" subtitle="Change property and task ownership inside allowed scope" />
+          <Card>
         <SelectInput label="Property" options={propertyOptions} value={propertyId} onChange={setPropertyId} />
         <SelectInput label="New owner" options={agentOptions} value={propertyAgentId} onChange={setPropertyAgentId} />
         <ActionMenu actions={[
@@ -223,30 +266,36 @@ export function TeamScreen({ data, allData, currentUser, actions }) {
         <ActionMenu actions={[
           { label: 'Reassign task', onPress: () => actions.reassignTask(taskId, taskAgentId, 'Workload balancing') },
         ]} />
-      </Card>
+          </Card>
+        </>
+      ) : null}
 
-      <SectionHeader title="Ownership history" subtitle="Latest transfer/reassignment events" />
-      {ownershipHistory.slice(0, 6).map((entry) => (
-        <Card key={entry.id}>
-          <Text style={screen.title}>{entry.action}</Text>
-          <Text style={screen.meta}>{entry.entityType} {entry.entityId} | {entry.createdAt}</Text>
-          <Text style={screen.body}>
-            {entry.fromUserId || entry.fromTeamId || 'n/a'} to {entry.toUserId || entry.toTeamId || 'n/a'} | {entry.reason}
-          </Text>
-        </Card>
-      ))}
+      {section === 'audit' ? (
+        <>
+          <SectionHeader title="Ownership history" subtitle="Latest transfer/reassignment events" />
+          {ownershipHistory.slice(0, 6).map((entry) => (
+            <Card key={entry.id}>
+              <Text style={screen.title}>{entry.action}</Text>
+              <Text style={screen.meta}>{entry.entityType} {entry.entityId} | {entry.createdAt}</Text>
+              <Text style={screen.body}>
+                {entry.fromUserId || entry.fromTeamId || 'n/a'} to {entry.toUserId || entry.toTeamId || 'n/a'} | {entry.reason}
+              </Text>
+            </Card>
+          ))}
 
-      <SectionHeader title="Audit log" subtitle="Success and denied RBAC events" />
-      {auditLog.slice(0, 8).map((entry) => (
-        <Card key={entry.id}>
-          <View style={screen.rowBetween}>
-            <Text style={screen.title}>{entry.action}</Text>
-            <StatusBadge label={entry.result} tone={entry.result === 'denied' ? 'danger' : 'success'} />
-          </View>
-          <Text style={screen.meta}>{entry.role} | {entry.targetType} {entry.targetId} | {entry.createdAt}</Text>
-          <Text style={screen.body}>{entry.details}</Text>
-        </Card>
-      ))}
+          <SectionHeader title="Audit log" subtitle="Success and denied RBAC events" />
+          {auditLog.slice(0, 8).map((entry) => (
+            <Card key={entry.id}>
+              <View style={screen.rowBetween}>
+                <Text style={screen.title}>{entry.action}</Text>
+                <StatusBadge label={entry.result} tone={entry.result === 'denied' ? 'danger' : 'success'} />
+              </View>
+              <Text style={screen.meta}>{entry.role} | {entry.targetType} {entry.targetId} | {entry.createdAt}</Text>
+              <Text style={screen.body}>{entry.details}</Text>
+            </Card>
+          ))}
+        </>
+      ) : null}
     </View>
   );
 }
