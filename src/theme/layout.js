@@ -1,8 +1,9 @@
 export const layout = {
-  desktopSidebarWidth: 232,
-  desktopMaxWidth: 1180,
-  wideMaxWidth: 1320,
+  desktopSidebarWidth: 244,
+  desktopMaxWidth: 1240,
+  wideMaxWidth: 1480,
   cardRadius: 8,
-  buttonRadius: 8,
-  mobileBottomTabsHeight: 74,
+  buttonRadius: 6,
+  mobileBottomTabsHeight: 70,
+  tableRowHeight: 48,
 };

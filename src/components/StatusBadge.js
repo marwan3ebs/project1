@@ -2,12 +2,12 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 const tones = {
-  success: ['#dcfce7', '#86efac', '#166534'],
-  danger: ['#ffe4e6', '#fda4af', '#be123c'],
-  warning: ['#ffedd5', '#fdba74', '#9a3412'],
-  info: ['#dbeafe', '#93c5fd', '#1d4ed8'],
-  muted: ['#f8fafc', '#cbd5e1', '#334155'],
-  primary: ['#ccfbf1', '#5eead4', '#0f766e'],
+  success: ['#f0fdf4', '#bbf7d0', '#166534'],
+  danger: ['#fef2f2', '#fecaca', '#b91c1c'],
+  warning: ['#fff7ed', '#fed7aa', '#b45309'],
+  info: ['#eff6ff', '#bfdbfe', '#1d4ed8'],
+  muted: ['#f8fafc', '#d8e0ea', '#475569'],
+  primary: ['#eef2f7', '#cbd5e1', '#17233a'],
 };
 
 export function StatusBadge({ label, tone = 'muted' }) {
@@ -25,11 +25,12 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     borderRadius: 999,
     borderWidth: 1,
-    paddingHorizontal: 9,
-    paddingVertical: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
   },
   text: {
-    fontSize: 11,
-    fontWeight: '900',
+    fontSize: 10,
+    fontWeight: '800',
+    textTransform: 'uppercase',
   },
 });

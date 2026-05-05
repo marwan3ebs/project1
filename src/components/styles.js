@@ -8,8 +8,8 @@ export const ui = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: 14,
-    marginBottom: 12,
+    padding: 13,
+    marginBottom: 10,
     ...shadows.card,
   },
   row: {
@@ -31,8 +31,8 @@ export const ui = StyleSheet.create({
   },
   title: {
     color: colors.ink,
-    fontSize: 16,
-    fontWeight: '900',
+    fontSize: 15,
+    fontWeight: '800',
   },
   body: {
     color: colors.text,
