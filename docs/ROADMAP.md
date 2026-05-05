@@ -10,32 +10,37 @@
 
 ## Phase 1 - Demo Stabilization
 
-- Split `App.js` into screen files.
-- Add navigation library.
-- Add role-based demo switch or login stub.
-- Add compact inventory list and detail screen.
-- Improve agreement form validation.
-- Add search and sort.
-- Add report export prototype.
+- Completed on `feature/full-crm-upgrade`: split `App.js` into navigator, screens, services, utilities, and components.
+- Completed: property detail screen.
+- Completed: add property/agreement form with validation.
+- Completed: search/filter inventory.
+- Completed: report export-ready text.
+- Completed on `feature/responsive-rbac-crm-actions`: add role-based demo switch and RBAC-scoped data visibility.
+- Completed on `feature/maro-rbac-ownership-analytics`: replace visible role switcher with local demo login and session restore/logout.
+- Remaining: replace custom navigation with React Navigation or Expo Router if the project will keep growing.
 
 ## Phase 2 - CRM Quality
 
 - Add TypeScript.
 - Add data models and validation schemas.
 - Add service layer for storage and future API work.
-- Add agreement renewal and expiry workflows.
+- Completed in local demo form: add agreement renewal and expiry workflows.
 - Add calendar view.
 - Add client profiles and follow-up history.
-- Add activity timeline.
+- Add fuller client profile and activity timeline screens.
+- Add FlatList virtualization for inventory and task lists.
+- Add native date pickers and better phone/number formatting.
+- Completed in local demo form: professionalize desktop CRM layout, inventory table, report sections, team console sections, and task board sections.
 
 ## Phase 3 - Backend and Production Readiness
 
-- Add authentication.
+- Add real authentication mapped to the current local RBAC model.
 - Add database/API.
-- Add role-based permissions.
+- Completed in local demo form: add role-based permissions.
 - Add notifications.
 - Add report generation service.
-- Add audit logs.
+- Completed in local demo form: add local audit logs and ownership history.
+- Replace local demo auth, AsyncStorage, and local audit logs with backend auth, database persistence, server-side RBAC, and immutable audit events.
 - Add tests and CI.
 - Add backup/export.
 
